@@ -29,7 +29,7 @@ export default commandModule({
       },
     },
   ],
-  execute: async (ctx, sdt) => {
+  execute: async (ctx) => {
     const ticker = ctx.options.get("ticker", true);
     await ctx.reply(`Your ticker is ${ticker}`);
   },
