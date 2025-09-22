@@ -6,7 +6,8 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "sern build",
-    "start": "bun run src/index.ts"
+    "start": "bun run src/index.ts",
+    "seed": "bun run scripts/seed-tickers.ts"
   },
   "keywords": [
     "typescript",
@@ -14,10 +15,13 @@
     "discord.js"
   ],
   "dependencies": {
+    "@neondatabase/serverless": "^1.0.1",
     "@sern/handler": "^4.0.0",
     "@sern/publisher": "^1.1.1",
     "discord.js": "latest",
     "dotenv": "^16.3.1",
+    "drizzle-kit": "^0.31.4",
+    "drizzle-orm": "^0.44.5",
     "zod": "^4.1.9"
   },
   "devDependencies": {
