@@ -7,7 +7,7 @@
   "scripts": {
     "build": "sern build",
     "start": "bun run src/index.ts",
-    "push": "drizzle-kit generate",
+    "generate": "drizzle-kit generate",
     "migrate": "drizzle-kit migrate",
     "studio": "drizzle-kit studio"
   },
