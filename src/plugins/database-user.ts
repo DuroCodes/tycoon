@@ -3,25 +3,22 @@ import { users } from "../db/schema";
 import { eq } from "drizzle-orm";
 import { db } from "../db/client";
 
-export const databaseUser = () => {
-  return CommandControlPlugin(async (ctx, sdt) => {
+export const databaseUser = () =>
+  CommandControlPlugin(async (ctx, sdt) => {
     try {
-      const userId = ctx.user.id;
-
       const existingUser = await db
         .select()
         .from(users)
-        .where(eq(users.id, userId))
+        .where(eq(users.id, ctx.user.id))
         .limit(1);
 
       if (existingUser.length === 0) {
         await db.insert(users).values({
-          id: userId,
-          balance: 0,
+          id: ctx.user.id,
         });
 
         sdt.deps["@sern/logger"]?.info({
-          message: `Created new user in database: ${userId}`,
+          message: `Created new user in database: ${ctx.user.id}`,
         });
       }
 
@@ -34,4 +31,3 @@ export const databaseUser = () => {
       return controller.stop("Database error occurred");
     }
   });
-};
