@@ -5,7 +5,7 @@
       "name": "ts-example",
       "dependencies": {
         "@neondatabase/serverless": "^1.0.1",
-        "@sern/handler": "^4.0.0",
+        "@sern/handler": "^4.2.6",
         "@sern/publisher": "^1.1.1",
         "discord.js": "latest",
         "dotenv": "^16.3.1",
@@ -98,7 +98,7 @@
 
     "@sapphire/snowflake": ["@sapphire/snowflake@3.5.3", "", {}, "sha512-jjmJywLAFoWeBi1W7994zZyiNWPIiqRRNAmSERxyg93xRGzNYvGjlZ0gR6x0F4gPRi2+0O6S71kOZYyr3cxaIQ=="],
 
-    "@sern/handler": ["@sern/handler@4.2.5", "", { "dependencies": { "@sern/ioc": "^1.1.2", "callsites": "^3.1.0", "cron": "^3.1.7", "deepmerge": "^4.3.1" } }, "sha512-ASvJMJf8agvn7J7jZVu7ujTEb8xycA34PG+sXu28HqxGXqvCea4LsRbX3MrAxw3FE+bPQRLc3mYreKc50lmChg=="],
+    "@sern/handler": ["@sern/handler@4.2.6", "", { "dependencies": { "@sern/ioc": "^1.1.2", "callsites": "^3.1.0", "cron": "^3.1.7", "deepmerge": "^4.3.1" } }, "sha512-LuRs56kVsZKNZ8KRSTdFDrjIv12u62rmHqfwHocjOEF/1LMA2Xd5qDjntaaHOLRTN4il1ZiY3mXRJUHVpMDHYA=="],
 
     "@sern/ioc": ["@sern/ioc@1.1.2", "", {}, "sha512-n84w7n5hB1dl8N6dfSbeYIo0QYORMS1bpG/P7J7GoMNTu8c28EYVZ8uGs3Md9GB09UseOKn3mfv1QBDtRsbb1g=="],
 

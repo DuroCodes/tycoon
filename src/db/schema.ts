@@ -2,6 +2,7 @@ import { doublePrecision, text, pgTable } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
+  balance: doublePrecision("balance").default(0),
 });
 
 export const assets = pgTable("assets", {
