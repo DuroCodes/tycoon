@@ -1,7 +1,7 @@
 import { CommandControlPlugin, controller } from "@sern/handler";
-import { users } from "../db/schema";
+import { users } from "~/db/schema";
 import { eq } from "drizzle-orm";
-import { db } from "../db/client";
+import { db } from "~/db/client";
 
 export const databaseUser = () =>
   CommandControlPlugin(async (ctx, sdt) => {
@@ -12,7 +12,7 @@ export const databaseUser = () =>
         .where(eq(users.id, ctx.user.id))
         .limit(1);
 
-      if (existingUser.length === 0) {
+      if (!existingUser.length) {
         await db.insert(users).values({
           id: ctx.user.id,
         });
