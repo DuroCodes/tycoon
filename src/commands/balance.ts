@@ -19,12 +19,26 @@ export default commandModule({
   ],
   execute: async (ctx) => {
     const user = ctx.options.getUser("user") || ctx.user;
-    // todo: check if user exists
-    const { balance } = (await db
-      .select({ balance: users.balance })
+
+    const existingUser = await db
+      .select()
       .from(users)
       .where(eq(users.id, user.id))
-      .limit(1))[0];
+      .limit(1);
+
+    if (existingUser.length === 0)
+      await db.insert(users).values({
+        id: user.id,
+        balance: 0,
+      });
+
+    const { balance } = (
+      await db
+        .select({ balance: users.balance })
+        .from(users)
+        .where(eq(users.id, user.id))
+        .limit(1)
+    )[0];
 
     ctx.reply(`${user.displayName}'s balance: ${balance}`);
   },
