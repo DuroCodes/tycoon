@@ -14,7 +14,7 @@ import { desc } from "drizzle-orm";
 import { db } from "~/db/client";
 import { users } from "~/db/schema";
 import { databaseUser } from "~/plugins/database-user";
-import { formatMoney } from "~/utils/format-money";
+import { formatMoney } from "~/utils/formatting";
 
 export default commandModule({
   type: CommandType.Slash,
@@ -64,7 +64,7 @@ export default commandModule({
       return new SectionBuilder({
         accessory: new ButtonBuilder({
           label: "Holdings",
-          custom_id: `leaderboard:${user.id}`,
+          custom_id: `holdings/${user.id}`,
           style: ButtonStyle.Secondary,
         }).toJSON(),
         components: [

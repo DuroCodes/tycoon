@@ -1,3 +1,3 @@
 import { computeAssetPrices } from "~/utils/compute-prices";
 
-computeAssetPrices();
+computeAssetPrices(undefined, undefined, 30);

@@ -9,7 +9,7 @@ import { ApplicationCommandOptionType } from "discord.js";
 import { eq, ilike, desc, or } from "drizzle-orm";
 import { db } from "~/db/client";
 import { assets, prices } from "~/db/schema";
-import { formatMoney } from "~/utils/format-money";
+import { cleanCompanyName, formatMoney } from "~/utils/formatting";
 
 export default commandModule({
   type: CommandType.Slash,
@@ -35,14 +35,6 @@ export default commandModule({
               ),
             )
             .limit(25);
-
-          const cleanCompanyName = (name: string) =>
-            name
-              .replace(
-                /\s*(?:,\s*)?(Inc\.?|Corporation|Corp\.?|Ltd\.?|LLC|Company|Co\.?|Incorporated|Holdings)$/i,
-                "",
-              )
-              .trim();
 
           await ctx.respond(
             asset.map((a) => ({
@@ -70,25 +62,36 @@ export default commandModule({
     const latestPrice = await db
       .select()
       .from(prices)
-      .where(eq(prices.assetId, assetId))
+      .where(eq(prices.assetId, asset.id))
       .orderBy(desc(prices.timestamp))
       .limit(1);
 
     const displayPrice = latestPrice.length > 0 ? latestPrice[0].price : null;
 
-    const getFirstSentence = (text: string) => {
-      const match = text.match(/^.*?\.(?=\s+[A-Z])/);
-      return match ? `${match[0]}` : `${text.split(".")[0]}`;
+    const getSentences = (text: string, n = 1) => {
+      if (!text) return "";
+
+      const sentences = text
+        .split(/\.(?=\s+[A-Z])|\.(?=\s*$)/) // stops "company inc." from being split
+        .filter((s) => s.trim());
+
+      const selectedSentences = sentences.slice(0, n);
+      let result = selectedSentences.join(".").trim();
+      if (result && !result.endsWith(".")) result += ".";
+
+      return result;
     };
 
-    const description = getFirstSentence(asset.description);
+    const description = getSentences(asset.description);
 
     const container = new ContainerBuilder({
       accent_color: Colors.Blue,
       components: [
-        new TextDisplayBuilder({ content: "### Asset Information" }).toJSON(),
         new TextDisplayBuilder({
-          content: `**${assetId}** - ${asset.name}`,
+          content: `### ${asset.name} • \` ${asset.id} \``,
+        }).toJSON(),
+        new TextDisplayBuilder({
+          content: `**${asset.id}** - ${asset.name}`,
         }).toJSON(),
         new TextDisplayBuilder({
           content: `${description}`,

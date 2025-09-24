@@ -5,6 +5,7 @@ import {
   timestamp,
   uuid,
   pgEnum,
+  unique,
 } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
@@ -45,7 +46,8 @@ export const prices = pgTable("prices", {
   id: uuid("id").primaryKey().defaultRandom(),
   assetId: text("asset_id")
     .references(() => assets.id)
-    .notNull(),
+    .notNull()
+    .unique(),
   price: doublePrecision("price").notNull(),
-  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  timestamp: timestamp("timestamp").defaultNow().notNull().unique(),
 });

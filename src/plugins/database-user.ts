@@ -1,5 +1,5 @@
 import { CommandControlPlugin, controller } from "@sern/handler";
-import { createUser } from "~/utils/create-user";
+import { createUser } from "~/utils/database";
 
 export const databaseUser = () =>
   CommandControlPlugin(async (ctx, sdt) => {

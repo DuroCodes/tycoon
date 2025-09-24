@@ -1,7 +1,7 @@
 import { db } from "~/db/client";
 import { prices } from "~/db/schema";
-import { createAsset } from "./create-asset";
-import { getStockPrice } from "./yfinance";
+import { createAsset } from "./database";
+import { getStockHistoricalPrice } from "./yfinance";
 import { ALL_ASSETS } from "./assets";
 import { scheduledTask } from "@sern/handler";
 
@@ -17,6 +17,7 @@ const log = (message: string, sdt?: TaskAttributes) => {
 export const computeAssetPrices = async (
   sdt?: TaskAttributes,
   assets = ALL_ASSETS,
+  days = 1,
 ) => {
   log("Starting scheduled price update...", sdt);
 
@@ -27,19 +28,33 @@ export const computeAssetPrices = async (
       continue;
     }
 
-    const price = await getStockPrice(asset);
+    const priceData = await getStockHistoricalPrice(asset, days);
 
-    if (!price.ok) {
+    if (!priceData.ok) {
       log(`Failed to update price for ${asset}: No price data available`, sdt);
       continue;
     }
 
-    await db.insert(prices).values({
+    const priceEntries = priceData.value.prices.map((price, index) => ({
       assetId: asset,
-      price: price.value,
-    });
+      price,
+      timestamp: priceData.value.timestamps[index],
+    }));
 
-    log(`Updated price for ${asset}: ${price.value.toFixed(2)}`, sdt);
+    await db
+      .insert(prices)
+      .values(priceEntries)
+      .onConflictDoUpdate({
+        target: [prices.assetId, prices.timestamp],
+        set: {
+          price: prices.price,
+        },
+      });
+
+    log(
+      `Updated ${priceData.value.prices.length} price entries for ${asset}`,
+      sdt,
+    );
   }
 
   log("Completed scheduled price update.", sdt);

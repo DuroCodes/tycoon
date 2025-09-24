@@ -43,6 +43,13 @@
       "when": 1758672404892,
       "tag": "0005_graceful_killmonger",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1758751174892,
+      "tag": "0006_colossal_mephisto",
+      "breakpoints": true
     }
   ]
 }

@@ -1,8 +1,21 @@
-import { eq } from "drizzle-orm";
 import { db } from "~/db/client";
-import { assets } from "~/db/schema";
-import { getStockInfo } from "./yfinance";
+import { assets, users } from "~/db/schema";
+import { eq } from "drizzle-orm";
 import { Err, Ok } from "./result";
+import { getStockInfo } from "./yfinance";
+
+export const createUser = async (userId: string) => {
+  const existingUser = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  if (existingUser.length) return existingUser[0];
+
+  const newUser = await db.insert(users).values({ id: userId }).returning();
+  return newUser[0];
+};
 
 export const createAsset = async (symbol: string) => {
   const existingAsset = await db

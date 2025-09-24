@@ -1,7 +1,7 @@
 import { commandModule, CommandType } from "@sern/handler";
 import { ApplicationCommandOptionType } from "discord.js";
 import { databaseUser } from "~/plugins/database-user";
-import { createUser } from "~/utils/create-user";
+import { createUser } from "~/utils/database";
 
 export default commandModule({
   type: CommandType.Slash,

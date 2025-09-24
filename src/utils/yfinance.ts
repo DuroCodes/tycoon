@@ -51,13 +51,18 @@ export const getStockInfo = async (symbol: string) => {
   });
 };
 
-export const getStockPrice = async (symbol: string) => {
+export const getStockHistoricalPrice = async (symbol: string, days = 1) => {
   const res = await zodFetch(
     YFinanceHistoricalSchema,
     "Failed to fetch stock price",
-    `https://yfinancerestapi.com/api/v1/finance/stocks/historical?ticker=${symbol}&period=1d`,
+    `https://yfinancerestapi.com/api/v1/finance/stocks/historical?ticker=${symbol}&period=${days}d`,
   );
 
   if (!res.ok) return Err("Failed to fetch stock price");
-  return Ok(res.value[0].close);
+  if (!res.value.length) return Err("No price data available");
+
+  return Ok({
+    prices: res.value.map((p) => p.close),
+    timestamps: res.value.map((p) => new Date(p.timestamp)),
+  });
 };
