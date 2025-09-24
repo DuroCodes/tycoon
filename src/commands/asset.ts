@@ -9,6 +9,7 @@ import { ApplicationCommandOptionType } from "discord.js";
 import { eq, ilike, desc, or } from "drizzle-orm";
 import { db } from "~/db/client";
 import { assets, prices } from "~/db/schema";
+import { container } from "~/utils/components";
 import { cleanCompanyName, formatMoney } from "~/utils/formatting";
 
 export default commandModule({
@@ -55,7 +56,11 @@ export default commandModule({
       .where(eq(assets.id, assetId))
       .limit(1);
 
-    if (dbAsset.length === 0) return ctx.reply("Asset not found in database");
+    if (dbAsset.length)
+      return ctx.reply({
+        components: [container("error", "Asset not found in database")],
+        flags: MessageFlags.IsComponentsV2,
+      });
 
     const asset = dbAsset[0];
 
@@ -84,7 +89,7 @@ export default commandModule({
 
     const description = getSentences(asset.description);
 
-    const container = new ContainerBuilder({
+    const assetContainer = new ContainerBuilder({
       accent_color: Colors.Blue,
       components: [
         new TextDisplayBuilder({
@@ -105,7 +110,7 @@ export default commandModule({
     });
 
     await ctx.reply({
-      components: [container],
+      components: [assetContainer],
       flags: MessageFlags.IsComponentsV2,
     });
   },
