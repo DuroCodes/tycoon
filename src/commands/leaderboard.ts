@@ -1,8 +1,13 @@
 import { commandModule, CommandType } from "@sern/handler";
 import {
+  APIComponentInContainer,
+  ButtonBuilder,
+  ButtonStyle,
   Colors,
   ContainerBuilder,
   MessageFlags,
+  SectionBuilder,
+  SeparatorBuilder,
   TextDisplayBuilder,
 } from "discord.js";
 import { desc } from "drizzle-orm";
@@ -27,7 +32,11 @@ export default commandModule({
         .catch(() => null);
 
       return fetchedUser
-        ? { user: fetchedUser, balance: userBalance.balance }
+        ? {
+            user: fetchedUser,
+            id: userBalance.user,
+            balance: userBalance.balance,
+          }
         : null;
     });
 
@@ -35,6 +44,7 @@ export default commandModule({
 
     const leaderboard = fetchedUsers.map((user) => ({
       user: user!.user.displayName,
+      id: user!.id,
       balance: user!.balance,
     }));
 
@@ -44,19 +54,42 @@ export default commandModule({
       2: "🥉",
     } as Record<number, string>;
 
-    const leaderboardContent = leaderboard
-      .map(
-        (u, i) =>
-          // prettier-ignore
-          `- ${rankEmojis[i] ?? "🔹"} ${u.user} - **${formatMoney(u.balance)}**`,
-      )
-      .join("\n");
+    const createLeaderboardSection = (
+      user: (typeof leaderboard)[number],
+      index: number,
+    ) => {
+      const rankEmoji = rankEmojis[index] ?? "🔹";
+      const balance = formatMoney(user.balance);
+
+      return new SectionBuilder({
+        accessory: new ButtonBuilder({
+          label: "Holdings",
+          custom_id: `leaderboard:${user.id}`,
+          style: ButtonStyle.Secondary,
+        }).toJSON(),
+        components: [
+          new TextDisplayBuilder({
+            content: `${rankEmoji} ${user.user} - **${balance}**`,
+          }).toJSON(),
+        ],
+      }).toJSON();
+    };
+
+    const createSeparator = (index: number, totalLength: number) =>
+      index !== totalLength - 1 ? new SeparatorBuilder().toJSON() : null;
+
+    const leaderboardSections = leaderboard.flatMap((user, index) => {
+      const section = createLeaderboardSection(user, index);
+      const separator = createSeparator(index, leaderboard.length);
+
+      return [section, separator].filter(Boolean) as APIComponentInContainer[];
+    });
 
     const container = new ContainerBuilder({
       accent_color: Colors.Gold,
       components: [
         new TextDisplayBuilder({ content: "### Leaderboard" }).toJSON(),
-        new TextDisplayBuilder({ content: leaderboardContent }).toJSON(),
+        ...leaderboardSections,
       ],
     });
 
