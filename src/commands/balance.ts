@@ -17,9 +17,8 @@ export default commandModule({
   ],
   execute: async (ctx) => {
     const user = ctx.options.getUser("user") || ctx.user;
-
     const { balance } = await createUser(user.id);
 
-    ctx.reply(`${user.displayName}'s balance: ${balance}`);
+    await ctx.reply(`${user.displayName}'s balance: ${balance}`);
   },
 });
