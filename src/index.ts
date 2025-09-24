@@ -32,6 +32,7 @@ await makeDependencies(({ add }) => {
 
 Sern.init({
   commands: "src/commands",
+  tasks: "src/tasks",
 });
 
 await client.login();

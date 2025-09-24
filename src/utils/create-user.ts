@@ -9,13 +9,8 @@ export const createUser = async (userId: string) => {
     .where(eq(users.id, userId))
     .limit(1);
 
-  if (!existingUser.length) {
-    await db.insert(users).values({
-      id: userId,
-    });
-  }
+  if (existingUser.length) return existingUser[0];
 
-  return existingUser[0] || (await db.insert(users).values({
-    id: userId,
-  }));
+  const newUser = await db.insert(users).values({ id: userId }).returning();
+  return newUser[0];
 };

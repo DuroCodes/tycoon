@@ -8,6 +8,41 @@
       "when": 1758663297486,
       "tag": "0000_mysterious_doctor_faustus",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1758668484557,
+      "tag": "0001_classy_stryfe",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1758669924005,
+      "tag": "0002_moaning_monster_badoon",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1758670104091,
+      "tag": "0003_fair_tyger_tiger",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1758671325852,
+      "tag": "0004_third_terrax",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1758672404892,
+      "tag": "0005_graceful_killmonger",
+      "breakpoints": true
     }
   ]
 }

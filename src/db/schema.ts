@@ -1,18 +1,51 @@
-import { doublePrecision, text, pgTable } from "drizzle-orm/pg-core";
+import {
+  doublePrecision,
+  text,
+  pgTable,
+  timestamp,
+  uuid,
+  pgEnum,
+} from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
-  balance: doublePrecision("balance").default(0),
+  balance: doublePrecision("balance").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const assets = pgTable("assets", {
   id: text("id").primaryKey(),
-  symbol: text("symbol"),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const userAssets = pgTable("user_assets", {
-  id: text("id").primaryKey(),
-  userId: text("user_id").references(() => users.id),
-  assetId: text("asset_id").references(() => assets.id),
-  shares: doublePrecision("shares"),
+export const transactionTypeEnum = pgEnum("transaction_type", ["buy", "sell"]);
+
+export const transactions = pgTable("transactions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .references(() => users.id)
+    .notNull(),
+  assetId: text("asset_id")
+    .references(() => assets.id)
+    .notNull(),
+  type: transactionTypeEnum("type").notNull(),
+  shares: doublePrecision("shares").notNull(),
+  pricePerShare: doublePrecision("price_per_share").notNull(),
+  totalAmount: doublePrecision("total_amount").notNull(),
+  balanceBefore: doublePrecision("balance_before").notNull(),
+  balanceAfter: doublePrecision("balance_after").notNull(),
+  sharesBefore: doublePrecision("shares_before").notNull(),
+  sharesAfter: doublePrecision("shares_after").notNull(),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+});
+
+export const prices = pgTable("prices", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  assetId: text("asset_id")
+    .references(() => assets.id)
+    .notNull(),
+  price: doublePrecision("price").notNull(),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
 });
