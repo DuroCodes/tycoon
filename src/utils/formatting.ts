@@ -9,8 +9,8 @@ export const formatMoney = (money: number) => {
 
 export const cleanCompanyName = (name: string) =>
   name
-    .replace(
-      /\s*(?:,\s*)?(Inc\.?|Corporation|Corp\.?|Ltd\.?|LLC|Company|Co\.?|Incorporated|Holdings)$/i,
+    .replaceAll(
+      /\s*(?:,\s*)?(Inc\.?|Corporation|Corp\.?|Ltd\.?|LLC|Company|Co\.?|Incorporated|Holdings)(?=\s|,|$)/gi,
       "",
     )
     .trim();

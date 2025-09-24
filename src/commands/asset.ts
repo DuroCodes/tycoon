@@ -4,6 +4,7 @@ import {
   ContainerBuilder,
   MessageFlags,
   TextDisplayBuilder,
+  AttachmentBuilder,
 } from "discord.js";
 import { ApplicationCommandOptionType } from "discord.js";
 import { eq, ilike, desc, or } from "drizzle-orm";
@@ -11,6 +12,7 @@ import { db } from "~/db/client";
 import { assets, prices } from "~/db/schema";
 import { container } from "~/utils/components";
 import { cleanCompanyName, formatMoney } from "~/utils/formatting";
+import { generateStockChartPng } from "~/utils/stock-image";
 
 export default commandModule({
   type: CommandType.Slash,
@@ -56,7 +58,7 @@ export default commandModule({
       .where(eq(assets.id, assetId))
       .limit(1);
 
-    if (dbAsset.length)
+    if (!dbAsset.length)
       return ctx.reply({
         components: [container("error", "Asset not found in database")],
         flags: MessageFlags.IsComponentsV2,
@@ -72,6 +74,16 @@ export default commandModule({
       .limit(1);
 
     const displayPrice = latestPrice.length > 0 ? latestPrice[0].price : null;
+
+    // Fetch price history for chart generation
+    const priceHistory = await db
+      .select({
+        price: prices.price,
+        timestamp: prices.timestamp,
+      })
+      .from(prices)
+      .where(eq(prices.assetId, asset.id))
+      .orderBy(prices.timestamp);
 
     const getSentences = (text: string, n = 1) => {
       if (!text) return "";
@@ -93,10 +105,7 @@ export default commandModule({
       accent_color: Colors.Blue,
       components: [
         new TextDisplayBuilder({
-          content: `### ${asset.name} • \` ${asset.id} \``,
-        }).toJSON(),
-        new TextDisplayBuilder({
-          content: `**${asset.id}** - ${asset.name}`,
+          content: `### ${cleanCompanyName(asset.name)} - \`${asset.id}\``,
         }).toJSON(),
         new TextDisplayBuilder({
           content: `${description}`,
@@ -109,9 +118,42 @@ export default commandModule({
       ],
     });
 
-    await ctx.reply({
+    // Generate chart if we have enough price data
+    let chartAttachment: AttachmentBuilder | undefined;
+    console.log(priceHistory.length);
+    if (priceHistory.length >= 2) {
+      try {
+        console.log("Generating chart");
+        const chartBuffer = await generateStockChartPng(
+          asset.id,
+          priceHistory,
+          800,
+          300,
+        );
+        console.log("Chart generated");
+        chartAttachment = new AttachmentBuilder(chartBuffer, {
+          name: `${asset.id}-chart.png`,
+        });
+      } catch (error) {
+        console.error("Failed to generate chart:", error);
+        // Continue without chart if generation fails
+      }
+    }
+    
+
+    const replyOptions: any = {
       components: [assetContainer],
       flags: MessageFlags.IsComponentsV2,
+    };
+    console.log("Reply options", replyOptions);
+
+    if (chartAttachment) {
+      replyOptions.files = [chartAttachment];
+    }
+    console.log("Reply options", replyOptions);
+
+    await ctx.reply({
+      files: [chartAttachment!],
     });
   },
 });

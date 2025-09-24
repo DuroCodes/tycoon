@@ -2,7 +2,7 @@ import { db } from "~/db/client";
 import { prices } from "~/db/schema";
 import { createAsset } from "./database";
 import { getStockHistoricalPrice } from "./yfinance";
-import { ALL_ASSETS } from "./assets";
+import { ALL_ASSETS } from "./all-assets";
 import { scheduledTask } from "@sern/handler";
 
 type TaskAttributes = Parameters<
