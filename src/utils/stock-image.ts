@@ -22,9 +22,10 @@ export const generateValueChartPng = async (
     yAxisFormatter?: (value: number) => string;
     colorUp?: string;
     colorDown?: string;
+    period?: string;
   } = {},
 ) => {
-  if (points.length < 2) throw new Error("Need at least 2 data points");
+  if (points.length < 1) throw new Error("Need at least 1 data point");
 
   const {
     width = 800,
@@ -32,9 +33,25 @@ export const generateValueChartPng = async (
     yAxisFormatter = (value) => `$${Number(value).toFixed(2)}`,
     colorUp = hexToString(COLOR_MAP["success"]),
     colorDown = hexToString(COLOR_MAP["error"]),
+    period = "30d",
   } = options;
 
-  const isUp = points[points.length - 1].value >= points[0].value;
+  // Determine time display format based on period
+  const periodConfig = {
+    "1d": { timeDisplayFormat: "HH:mm", maxTicksLimit: 8 },
+    "7d": { timeDisplayFormat: "MM/dd HH:mm", maxTicksLimit: 7 },
+    "30d": { timeDisplayFormat: "MM/dd", maxTicksLimit: 6 },
+    "90d": { timeDisplayFormat: "MM/dd", maxTicksLimit: 6 },
+    "1y": { timeDisplayFormat: "MMM dd", maxTicksLimit: 6 },
+  } as const;
+
+  const config =
+    periodConfig[period as keyof typeof periodConfig] ?? periodConfig["30d"];
+  const { timeDisplayFormat, maxTicksLimit } = config;
+
+  // For single data point, we can't determine if it's up or down, so use neutral color
+  const isUp =
+    points.length > 1 ? points.at(-1)!.value >= points[0].value : true;
   const colors = isUp
     ? {
         border: colorUp,
@@ -78,12 +95,12 @@ export const generateValueChartPng = async (
       scales: {
         x: {
           type: "time",
-          time: { displayFormats: { day: "MM/dd" } },
+          time: { displayFormats: { day: timeDisplayFormat } },
           grid: { color: "rgba(255,255,255,0.08)", lineWidth: 1 },
           ticks: {
             color: "rgba(255,255,255,0.7)",
             font: { size: 12 },
-            maxTicksLimit: 6,
+            maxTicksLimit: maxTicksLimit,
           },
         },
         y: {

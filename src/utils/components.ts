@@ -7,9 +7,12 @@ import { titleCase } from "./formatting";
 
 export const COLOR_MAP = {
   success: 0x8aeb91,
+  gain: 0x8aeb91,
   error: 0xe84243,
+  loss: 0xe84243,
   info: 0xdedfe1,
   person: 0xdedfe1,
+  neutral: 0xdedfe1,
   trophy: 0xf1c40f,
 } as const;
 
