@@ -64,8 +64,8 @@ export default commandModule({
 
       return new SectionBuilder({
         accessory: new ButtonBuilder({
-          label: "Holdings",
-          custom_id: `holdings/${user.id}`,
+          label: "Portfolio",
+          custom_id: `portfolio/${user.id}`,
           style: ButtonStyle.Secondary,
         }).toJSON(),
         components: [
