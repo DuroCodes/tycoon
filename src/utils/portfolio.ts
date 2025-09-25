@@ -17,9 +17,7 @@ import {
 import { formatMoney } from "~/utils/formatting";
 import { generateValueChartPng } from "~/utils/stock-image";
 
-export const getPortfolioData = async (userId: string) => {
-  const { balance } = await getUser(userId);
-
+const getUserAssetData = async (userId: string) => {
   const latestTimestamps = db
     .select({
       assetId: transactions.assetId,
@@ -46,8 +44,31 @@ export const getPortfolioData = async (userId: string) => {
     )
     .where(eq(transactions.userId, userId));
 
+  const latestPrices = await Promise.all(
+    assetTransactions.map((t) => getLatestPrice(t.assetId)),
+  );
+
+  return assetTransactions.map((t, i) => ({
+    ...t,
+    price: latestPrices[i]?.price ?? 0,
+    worth: (latestPrices[i]?.price ?? 0) * t.shares,
+  }));
+};
+
+export const getTotalWorth = async (userId: string) => {
+  const { balance } = await getUser(userId);
+  const assetData = await getUserAssetData(userId);
+  const ownedAssets = assetData.filter((t) => t.shares > 0);
+  const totalWorth = ownedAssets.reduce((acc, t) => acc + t.worth, 0) + balance;
+  return totalWorth;
+};
+
+export const getPortfolioData = async (userId: string) => {
+  const { balance } = await getUser(userId);
+  const assetData = await getUserAssetData(userId);
+
   const originalBuyPrices = await Promise.all(
-    assetTransactions.map(async (t) => {
+    assetData.map(async (t) => {
       const firstBuy = await db
         .select({ pricePerShare: transactions.pricePerShare })
         .from(transactions)
@@ -65,21 +86,15 @@ export const getPortfolioData = async (userId: string) => {
     }),
   );
 
-  const latestPrices = await Promise.all(
-    assetTransactions.map((t) => getLatestPrice(t.assetId)),
-  );
-
-  const zipped = assetTransactions
+  const zipped = assetData
     .map((t, i) => ({
       ...t,
-      price: latestPrices[i]?.price ?? 0,
-      worth: (latestPrices[i]?.price ?? 0) * t.shares,
-      difference: (latestPrices[i]?.price ?? 0) - originalBuyPrices[i],
+      difference: t.price - originalBuyPrices[i],
     }))
     .sort((a, b) => b.worth - a.worth);
 
   const ownedAssets = zipped.filter((t) => t.shares > 0);
-  const totalWorth = ownedAssets.reduce((acc, t) => acc + t.worth, 0) + balance;
+  const totalWorth = await getTotalWorth(userId);
 
   let portfolioContent = "";
 
@@ -155,7 +170,7 @@ export const buildPortfolioComponents = async (
     new TextDisplayBuilder({
       content: `Balance: **${formatMoney(portfolioData.balance)}**`,
     }).toJSON(),
-    
+
     portfolioData.balanceChartBuffer
       ? new MediaGalleryBuilder({
           items: [

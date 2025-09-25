@@ -3,8 +3,6 @@ import {
   APIComponentInContainer,
   ButtonBuilder,
   ButtonStyle,
-  Colors,
-  ContainerBuilder,
   MessageFlags,
   SectionBuilder,
   SeparatorBuilder,
@@ -16,6 +14,7 @@ import { users } from "~/db/schema";
 import { databaseUser } from "~/plugins/database-user";
 import { container, EMOJI_MAP } from "~/utils/components";
 import { formatMoney } from "~/utils/formatting";
+import { getTotalWorth } from "~/utils/portfolio";
 
 export default commandModule({
   type: CommandType.Slash,
@@ -55,12 +54,12 @@ export default commandModule({
       2: "🥉",
     } as Record<number, string>;
 
-    const createLeaderboardSection = (
+    const createLeaderboardSection = async (
       user: (typeof leaderboard)[number],
       index: number,
     ) => {
       const rankEmoji = rankEmojis[index] ?? "🔹";
-      const balance = formatMoney(user.balance);
+      const balance = formatMoney(await getTotalWorth(user.id));
 
       return new SectionBuilder({
         accessory: new ButtonBuilder({
@@ -79,12 +78,16 @@ export default commandModule({
     const createSeparator = (index: number, totalLength: number) =>
       index !== totalLength - 1 ? new SeparatorBuilder().toJSON() : null;
 
-    const leaderboardSections = leaderboard.flatMap((user, index) => {
-      const section = createLeaderboardSection(user, index);
-      const separator = createSeparator(index, leaderboard.length);
+    const leaderboardSections = await Promise.all(
+      leaderboard.flatMap((user, index) => {
+        const section = createLeaderboardSection(user, index);
+        const separator = createSeparator(index, leaderboard.length);
 
-      return [section, separator].filter(Boolean) as APIComponentInContainer[];
-    });
+        return [section, separator].filter(
+          Boolean,
+        ) as APIComponentInContainer[];
+      }),
+    );
 
     await ctx.reply({
       components: [

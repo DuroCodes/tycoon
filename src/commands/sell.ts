@@ -1,11 +1,11 @@
 import { commandModule, CommandType } from "@sern/handler";
 import { ApplicationCommandOptionType } from "discord.js";
-import { or, ilike } from "drizzle-orm";
-import { db } from "~/db/client";
-import { assets } from "~/db/schema";
 import { databaseUser } from "~/plugins/database-user";
 import { cleanCompanyName } from "~/utils/formatting";
 import { getPortfolioData } from "~/utils/portfolio";
+import { db } from "~/db/client";
+import { assets } from "~/db/schema";
+import { inArray } from "drizzle-orm";
 
 export default commandModule({
   type: CommandType.Slash,
@@ -23,17 +23,26 @@ export default commandModule({
           const focus = ctx.options.getFocused();
           const ownedAssets = (await getPortfolioData(ctx.user.id)).ownedAssets;
 
-          const asset = ownedAssets
-            .filter((asset) =>
-              asset.assetId.toLowerCase().includes(focus.toLowerCase())
+          const ownedAssetIds = ownedAssets.map((asset) => asset.assetId);
+
+          const dbAssets = await db
+            .select()
+            .from(assets)
+            .where(inArray(assets.id, ownedAssetIds));
+
+          const filteredAssets = dbAssets
+            .filter(
+              (asset) =>
+                asset.id.toLowerCase().includes(focus.toLowerCase()) ||
+                asset.name.toLowerCase().includes(focus.toLowerCase()),
             )
             .slice(0, 25);
 
           await ctx.respond(
-            asset.map((a) => ({
-              name: `${a.assetId}`,
-              value: a.assetId,
-            }))
+            filteredAssets.map((a) => ({
+              name: `${a.id} (${cleanCompanyName(a.name)})`,
+              value: a.id,
+            })),
           );
         },
       },
