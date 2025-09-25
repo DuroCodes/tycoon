@@ -14,6 +14,7 @@ import { desc } from "drizzle-orm";
 import { db } from "~/db/client";
 import { users } from "~/db/schema";
 import { databaseUser } from "~/plugins/database-user";
+import { container, EMOJI_MAP } from "~/utils/components";
 import { formatMoney } from "~/utils/formatting";
 
 export default commandModule({
@@ -85,16 +86,14 @@ export default commandModule({
       return [section, separator].filter(Boolean) as APIComponentInContainer[];
     });
 
-    const container = new ContainerBuilder({
-      accent_color: Colors.Gold,
-      components: [
-        new TextDisplayBuilder({ content: "### Leaderboard" }).toJSON(),
-        ...leaderboardSections,
-      ],
-    });
-
     await ctx.reply({
-      components: [container],
+      components: [
+        container(
+          "trophy",
+          leaderboardSections,
+          `### ${EMOJI_MAP.trophy} Leaderboard`,
+        ),
+      ],
       flags: MessageFlags.IsComponentsV2,
     });
   },
