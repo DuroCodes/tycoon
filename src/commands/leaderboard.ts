@@ -32,7 +32,7 @@ export default commandModule({
         .fetch(userBalance.user)
         .catch(() => null);
 
-      return fetchedUser
+      return fetchedUser && fetchedUser.id !== ctx.client.user?.id
         ? {
             user: fetchedUser,
             id: userBalance.user,
@@ -65,7 +65,7 @@ export default commandModule({
       return new SectionBuilder({
         accessory: new ButtonBuilder({
           label: "Portfolio",
-          custom_id: `portfolio/${user.id}`,
+          custom_id: `portfolio/${user.id}|${user.user}`,
           style: ButtonStyle.Secondary,
         }).toJSON(),
         components: [
