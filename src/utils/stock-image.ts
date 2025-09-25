@@ -1,4 +1,5 @@
 import "chartjs-adapter-date-fns";
+import { setTimeout as sleep } from "timers/promises";
 import { Chart, registerables } from "chart.js";
 import { createCanvas } from "@napi-rs/canvas";
 import { COLOR_MAP } from "./components";
@@ -98,7 +99,7 @@ export const generateValueChartPng = async (
     },
   });
 
-  await new Promise((resolve) => setTimeout(resolve, 100));
+  await sleep(100);
 
   const buffer = canvas.toBuffer("image/png");
   chart.destroy();
