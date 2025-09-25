@@ -13,6 +13,7 @@ import { assets, prices } from "~/db/schema";
 import { container } from "~/utils/components";
 import { cleanCompanyName, formatMoney } from "~/utils/formatting";
 import { generateStockChartPng } from "~/utils/stock-image";
+import { getLatestPrice } from "~/utils/database";
 
 export default commandModule({
   type: CommandType.Slash,
@@ -66,14 +67,8 @@ export default commandModule({
 
     const asset = dbAsset[0];
 
-    const latestPrice = await db
-      .select()
-      .from(prices)
-      .where(eq(prices.assetId, asset.id))
-      .orderBy(desc(prices.timestamp))
-      .limit(1);
-
-    const displayPrice = latestPrice.length > 0 ? latestPrice[0].price : null;
+    const latestPrice = await getLatestPrice(asset.id);
+    const displayPrice = latestPrice?.price ?? null;
 
     // Fetch price history for chart generation
     const priceHistory = await db
@@ -139,7 +134,6 @@ export default commandModule({
         // Continue without chart if generation fails
       }
     }
-    
 
     const replyOptions: any = {
       components: [assetContainer],

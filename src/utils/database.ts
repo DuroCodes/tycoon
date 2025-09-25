@@ -1,6 +1,6 @@
 import { db } from "~/db/client";
-import { assets, users } from "~/db/schema";
-import { eq } from "drizzle-orm";
+import { assets, users, prices } from "~/db/schema";
+import { eq, desc } from "drizzle-orm";
 import { Err, Ok } from "./result";
 import { getStockInfo } from "./yfinance";
 
@@ -40,4 +40,15 @@ export const getAsset = async (symbol: string) => {
     .returning();
 
   return Ok(newAsset[0]);
+};
+
+export const getLatestPrice = async (assetId: string) => {
+  const priceQuery = await db
+    .select()
+    .from(prices)
+    .where(eq(prices.assetId, assetId))
+    .orderBy(desc(prices.timestamp))
+    .limit(1);
+
+  return priceQuery.length > 0 ? priceQuery[0] : null;
 };

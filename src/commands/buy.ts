@@ -1,10 +1,10 @@
 import { commandModule, CommandType } from "@sern/handler";
 import { ApplicationCommandOptionType, MessageFlags } from "discord.js";
 import { databaseUser } from "~/plugins/database-user";
-import { getUser } from "~/utils/database";
+import { getUser, getLatestPrice } from "~/utils/database";
 import { db } from "~/db/client";
 import { cleanCompanyName, formatMoney } from "~/utils/formatting";
-import { assets, prices, users, transactions } from "~/db/schema";
+import { assets, users, transactions } from "~/db/schema";
 import { or, ilike, eq, desc, and } from "drizzle-orm";
 import { container } from "~/utils/components";
 
@@ -83,20 +83,15 @@ export default commandModule({
       });
 
     const asset = assetQuery[0];
-    const priceQuery = await db
-      .select()
-      .from(prices)
-      .where(eq(prices.assetId, asset.id))
-      .orderBy(desc(prices.timestamp))
-      .limit(1);
+    const latestPrice = await getLatestPrice(asset.id);
 
-    if (!priceQuery.length)
+    if (!latestPrice)
       return ctx.reply({
         components: [container("error", "Price not found in database")],
         flags: MessageFlags.IsComponentsV2,
       });
 
-    const currentPrice = priceQuery[0].price;
+    const currentPrice = latestPrice.price;
     const shareAmount = type === "money" ? amount / currentPrice : amount;
     const moneyAmount = shareAmount * currentPrice;
 
