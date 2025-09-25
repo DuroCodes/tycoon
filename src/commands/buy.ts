@@ -29,8 +29,8 @@ export default commandModule({
             .where(
               or(
                 ilike(assets.id, `%${focus}%`),
-                ilike(assets.name, `%${focus}%`)
-              )
+                ilike(assets.name, `%${focus}%`),
+              ),
             )
             .limit(25);
 
@@ -38,7 +38,7 @@ export default commandModule({
             asset.map((a) => ({
               name: `${a.id} (${cleanCompanyName(a.name)})`,
               value: a.id,
-            }))
+            })),
           );
         },
       },
@@ -83,22 +83,32 @@ export default commandModule({
       });
 
     const asset = assetQuery[0];
+    const priceQuery = await db
+      .select()
+      .from(prices)
+      .where(eq(prices.assetId, asset.id))
+      .orderBy(desc(prices.timestamp))
+      .limit(1);
 
-    const currentPrice = (
-      await db
-        .select()
-        .from(prices)
-        .where(eq(prices.assetId, asset.id))
-        .orderBy(desc(prices.timestamp))
-        .limit(1)
-    )[0].price;
+    if (!priceQuery.length)
+      return ctx.reply({
+        components: [container("error", "Price not found in database")],
+        flags: MessageFlags.IsComponentsV2,
+      });
 
+    const currentPrice = priceQuery[0].price;
     const shareAmount = type === "money" ? amount / currentPrice : amount;
     const moneyAmount = shareAmount * currentPrice;
 
     if (moneyAmount > user.balance) {
+      const missing = formatMoney(moneyAmount - user.balance);
       return ctx.reply({
-        components: [container("error", "Not enough money")],
+        components: [
+          container(
+            "error",
+            `You don't have enough money. You need ${missing} more.`,
+          ),
+        ],
         flags: MessageFlags.IsComponentsV2,
       });
     }
@@ -109,41 +119,46 @@ export default commandModule({
       .where(
         and(
           eq(transactions.userId, user.id),
-          eq(transactions.assetId, asset.id)
-        )
-      ).orderBy(desc(transactions.timestamp))
+          eq(transactions.assetId, asset.id),
+        ),
+      )
+      .orderBy(desc(transactions.timestamp))
       .limit(1);
 
-    const sharesBefore = latestTransaction.length ? latestTransaction[0].sharesAfter : 0
+    const sharesBefore = latestTransaction.length
+      ? latestTransaction[0].sharesAfter
+      : 0;
+
+    await db.insert(transactions).values({
+      userId: user.id,
+      assetId: asset.id,
+      type: "buy",
+      shares: shareAmount,
+      pricePerShare: currentPrice,
+      balanceBefore: user.balance,
+      balanceAfter: user.balance - moneyAmount,
+      sharesBefore,
+      sharesAfter: sharesBefore + shareAmount,
+    });
 
     await db
       .update(users)
       .set({ balance: user.balance - moneyAmount })
       .where(eq(users.id, user.id));
 
-    await db
-      .insert(transactions)
-      .values({
-        userId: user.id,
-        assetId: asset.id,
-        type: "buy",
-        shares: shareAmount,
-        pricePerShare: currentPrice,
-        balanceBefore: user.balance,
-        balanceAfter: user.balance - moneyAmount,
-        sharesBefore,
-        sharesAfter: sharesBefore + shareAmount,
-      })
+    const money = formatMoney(moneyAmount);
+    const shares = Number.isInteger(shareAmount)
+      ? shareAmount
+      : shareAmount.toFixed(4);
+    const company = cleanCompanyName(asset.name);
+    const sharesString = shareAmount === 1 ? "share" : "shares";
+    const newBalance = formatMoney(user.balance - moneyAmount);
 
     return ctx.reply({
       components: [
         container(
           "success",
-          `You bought ${formatMoney(moneyAmount)} (${
-            Number.isInteger(shareAmount) ? shareAmount : shareAmount.toFixed(4)
-          } share${shareAmount === 1 ? "" : "s"}) of ${asset.id} (${
-            asset.name
-          })`
+          `**Amount:** ${money}\n**Shares:** ${shares} ${sharesString}\n**Asset:** ${asset.id} (${company})\n\n-# Your new balance is **${newBalance}**`,
         ),
       ],
       flags: MessageFlags.IsComponentsV2,
