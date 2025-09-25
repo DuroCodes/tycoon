@@ -12,7 +12,7 @@ import { db } from "~/db/client";
 import { assets, prices } from "~/db/schema";
 import { container } from "~/utils/components";
 import { cleanCompanyName, formatMoney } from "~/utils/formatting";
-import { generateStockChartPng } from "~/utils/stock-image";
+import { generateValueChartPng } from "~/utils/stock-image";
 import { getLatestPrice } from "~/utils/database";
 
 export default commandModule({
@@ -119,11 +119,15 @@ export default commandModule({
     if (priceHistory.length >= 2) {
       try {
         console.log("Generating chart");
-        const chartBuffer = await generateStockChartPng(
-          asset.id,
-          priceHistory,
-          800,
-          300,
+        const chartBuffer = await generateValueChartPng(
+          priceHistory.map((p) => ({
+            value: p.price,
+            timestamp: p.timestamp,
+          })),
+          {
+            width: 800,
+            height: 300,
+          },
         );
         console.log("Chart generated");
         chartAttachment = new AttachmentBuilder(chartBuffer, {

@@ -1,5 +1,5 @@
 import { db } from "~/db/client";
-import { assets, users, prices } from "~/db/schema";
+import { assets, users, prices, transactions } from "~/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { Err, Ok } from "./result";
 import { getStockInfo } from "./yfinance";
@@ -51,4 +51,31 @@ export const getLatestPrice = async (assetId: string) => {
     .limit(1);
 
   return priceQuery.length > 0 ? priceQuery[0] : null;
+};
+
+export const getUserBalanceOverTime = async (userId: string) => {
+  const userTransactions = await db
+    .select({
+      balanceAfter: transactions.balanceAfter,
+      timestamp: transactions.timestamp,
+    })
+    .from(transactions)
+    .where(eq(transactions.userId, userId))
+    .orderBy(transactions.timestamp);
+
+  // If user has no transactions, get their current balance
+  if (userTransactions.length === 0) {
+    const user = await getUser(userId);
+    return [
+      {
+        value: user.balance,
+        timestamp: new Date(),
+      },
+    ];
+  }
+
+  return userTransactions.map((t) => ({
+    value: t.balanceAfter,
+    timestamp: t.timestamp,
+  }));
 };

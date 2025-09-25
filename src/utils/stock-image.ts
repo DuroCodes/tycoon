@@ -1,7 +1,6 @@
 import "chartjs-adapter-date-fns";
 import { Chart, registerables } from "chart.js";
 import { createCanvas } from "@napi-rs/canvas";
-import { prices } from "~/db/schema";
 import { COLOR_MAP } from "./components";
 
 Chart.register(...registerables);
@@ -9,32 +8,47 @@ Chart.register(...registerables);
 const hexToString = (hex: number): string =>
   `#${hex.toString(16).padStart(6, "0")}`;
 
-type PricePoint = Pick<typeof prices.$inferSelect, "price" | "timestamp">;
+type ChartDataPoint = {
+  value: number;
+  timestamp: Date;
+};
 
-export const generateStockChartPng = async (
-  symbol: string,
-  points: PricePoint[],
-  width = 800,
-  height = 300,
+export const generateValueChartPng = async (
+  points: ChartDataPoint[],
+  options: {
+    width?: number;
+    height?: number;
+    yAxisFormatter?: (value: number) => string;
+    colorUp?: string;
+    colorDown?: string;
+  } = {},
 ) => {
   if (points.length < 2) throw new Error("Need at least 2 data points");
 
-  const isUp = points[points.length - 1].price >= points[0].price;
+  const {
+    width = 800,
+    height = 300,
+    yAxisFormatter = (value) => `$${Number(value).toFixed(2)}`,
+    colorUp = hexToString(COLOR_MAP["success"]),
+    colorDown = hexToString(COLOR_MAP["error"]),
+  } = options;
+
+  const isUp = points[points.length - 1].value >= points[0].value;
   const colors = isUp
     ? {
-        border: hexToString(COLOR_MAP["success"]),
-        fill: `${hexToString(COLOR_MAP["success"])}1f`,
+        border: colorUp,
+        fill: `${colorUp}1f`,
       }
     : {
-        border: hexToString(COLOR_MAP["error"]),
-        fill: `${hexToString(COLOR_MAP["error"])}1f`,
+        border: colorDown,
+        fill: `${colorDown}1f`,
       };
 
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext("2d");
 
   const labels = points.map((point) => point.timestamp);
-  const data = points.map((point) => point.price);
+  const data = points.map((point) => point.value);
 
   const chart = new Chart(ctx as any, {
     type: "line",
@@ -42,7 +56,6 @@ export const generateStockChartPng = async (
       labels: labels,
       datasets: [
         {
-          label: symbol,
           data: data,
           borderColor: colors.border,
           backgroundColor: colors.fill,
@@ -77,7 +90,7 @@ export const generateStockChartPng = async (
           ticks: {
             color: "rgba(255,255,255,0.7)",
             font: { size: 12 },
-            callback: (value) => `$${Number(value).toFixed(2)}`,
+            callback: (value) => yAxisFormatter(Number(value)),
           },
         },
       },
@@ -92,12 +105,3 @@ export const generateStockChartPng = async (
 
   return buffer;
 };
-
-// // Generate the chart
-// const aaplData = loadStockDataFromCSV("SO");
-// console.log(`Loaded ${aaplData.length} SO data points`);
-
-// generateStockChartPng("SO", aaplData, 1200, 600).then((buffer) => {
-//   writeFileSync("stock-chartjs-so.png", buffer);
-//   console.log("Chart saved as stock-chartjs-so.png");
-// });
