@@ -21,32 +21,39 @@ export default commandModule({
   description: "View the balance leaderboard",
   plugins: [databaseUser()],
   execute: async (ctx) => {
-    const userBalances = await db
+    const allUsers = await db
       .select({ user: users.id, balance: users.balance })
-      .from(users)
-      .orderBy(desc(users.balance));
+      .from(users);
 
-    const userFetchPromises = userBalances.map(async (userBalance) => {
+    const userWorthPromises = allUsers.map(async (userData) => {
       const fetchedUser = await ctx.client.users
-        .fetch(userBalance.user)
+        .fetch(userData.user)
         .catch(() => null);
 
-      return fetchedUser && fetchedUser.id !== ctx.client.user?.id
-        ? {
-            user: fetchedUser,
-            id: userBalance.user,
-            balance: userBalance.balance,
-          }
-        : null;
+      if (!fetchedUser || fetchedUser.id === ctx.client.user?.id) return null;
+
+      const totalWorth = await getTotalWorth(userData.user);
+
+      return {
+        user: fetchedUser,
+        id: userData.user,
+        balance: userData.balance,
+        totalWorth,
+      };
     });
 
-    const fetchedUsers = (await Promise.all(userFetchPromises)).filter(Boolean);
+    const usersWithWorth = (await Promise.all(userWorthPromises)).filter(
+      Boolean,
+    );
 
-    const leaderboard = fetchedUsers.map((user) => ({
-      user: user!.user.displayName,
-      id: user!.id,
-      balance: user!.balance,
-    }));
+    const leaderboard = usersWithWorth
+      .sort((a, b) => b!.totalWorth - a!.totalWorth)
+      .map((user) => ({
+        user: user!.user.displayName,
+        id: user!.id,
+        balance: user!.balance,
+        totalWorth: user!.totalWorth,
+      }));
 
     const rankEmojis = {
       0: "🥇",
@@ -54,12 +61,12 @@ export default commandModule({
       2: "🥉",
     } as Record<number, string>;
 
-    const createLeaderboardSection = async (
+    const createLeaderboardSection = (
       user: (typeof leaderboard)[number],
       index: number,
     ) => {
       const rankEmoji = rankEmojis[index] ?? "🔹";
-      const balance = formatMoney(await getTotalWorth(user.id));
+      const balance = formatMoney(user.totalWorth);
 
       return new SectionBuilder({
         accessory: new ButtonBuilder({
@@ -78,16 +85,12 @@ export default commandModule({
     const createSeparator = (index: number, totalLength: number) =>
       index !== totalLength - 1 ? new SeparatorBuilder().toJSON() : null;
 
-    const leaderboardSections = await Promise.all(
-      leaderboard.flatMap((user, index) => {
-        const section = createLeaderboardSection(user, index);
-        const separator = createSeparator(index, leaderboard.length);
+    const leaderboardSections = leaderboard.flatMap((user, index) => {
+      const section = createLeaderboardSection(user, index);
+      const separator = createSeparator(index, leaderboard.length);
 
-        return [section, separator].filter(
-          Boolean,
-        ) as APIComponentInContainer[];
-      }),
-    );
+      return [section, separator].filter(Boolean) as APIComponentInContainer[];
+    });
 
     await ctx.reply({
       components: [
