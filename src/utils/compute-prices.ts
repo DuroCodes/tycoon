@@ -1,6 +1,6 @@
 import { db } from "~/db/client";
 import { prices } from "~/db/schema";
-import { createAsset } from "./database";
+import { getAsset } from "./database";
 import { getStockHistoricalPrice } from "./yfinance";
 import { ALL_ASSETS } from "./all-assets";
 import { scheduledTask } from "@sern/handler";
@@ -22,7 +22,7 @@ export const computeAssetPrices = async (
   log("Starting scheduled price update...", sdt);
 
   for (const asset of assets) {
-    const assetResult = await createAsset(asset);
+    const assetResult = await getAsset(asset);
     if (!assetResult.ok) {
       log(`Failed to create asset ${asset}: ${assetResult.error}`, sdt);
       continue;

@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { Err, Ok } from "./result";
 import { getStockInfo } from "./yfinance";
 
-export const createUser = async (userId: string) => {
+export const getUser = async (userId: string) => {
   const existingUser = await db
     .select()
     .from(users)
@@ -17,7 +17,7 @@ export const createUser = async (userId: string) => {
   return newUser[0];
 };
 
-export const createAsset = async (symbol: string) => {
+export const getAsset = async (symbol: string) => {
   const existingAsset = await db
     .select()
     .from(assets)

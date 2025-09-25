@@ -1,7 +1,7 @@
 import { commandModule, CommandType } from "@sern/handler";
 import { ApplicationCommandOptionType } from "discord.js";
 import { databaseUser } from "~/plugins/database-user";
-import { createUser } from "~/utils/database";
+import { getUser } from "~/utils/database";
 
 export default commandModule({
   type: CommandType.Slash,
@@ -17,7 +17,7 @@ export default commandModule({
   ],
   execute: async (ctx) => {
     const user = ctx.options.getUser("user") || ctx.user;
-    const { balance } = await createUser(user.id);
+    const { balance } = await getUser(user.id);
 
     await ctx.reply(`${user.displayName}'s balance: ${balance}`);
   },
