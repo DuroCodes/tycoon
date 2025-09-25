@@ -1,5 +1,5 @@
 {
-  "id": "cdcc5f08-6a21-40d3-9474-1362afefbb4e",
+  "id": "97fd93f7-f20f-4f23-88fb-5de3ac7aba56",
   "prevId": "96d04ef2-b1ae-4978-a083-51de25a294d4",
   "version": "7",
   "dialect": "postgresql",
@@ -91,11 +91,10 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "unique_asset_timestamp": {
-          "name": "unique_asset_timestamp",
+        "prices_timestamp_unique": {
+          "name": "prices_timestamp_unique",
           "nullsNotDistinct": false,
           "columns": [
-            "asset_id",
             "timestamp"
           ]
         }
@@ -142,12 +141,6 @@
         },
         "price_per_share": {
           "name": "price_per_share",
-          "type": "double precision",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "total_amount": {
-          "name": "total_amount",
           "type": "double precision",
           "primaryKey": false,
           "notNull": true

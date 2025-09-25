@@ -5,7 +5,6 @@ import {
   timestamp,
   uuid,
   pgEnum,
-  unique,
 } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
@@ -34,7 +33,6 @@ export const transactions = pgTable("transactions", {
   type: transactionTypeEnum("type").notNull(),
   shares: doublePrecision("shares").notNull(),
   pricePerShare: doublePrecision("price_per_share").notNull(),
-  totalAmount: doublePrecision("total_amount").notNull(),
   balanceBefore: doublePrecision("balance_before").notNull(),
   balanceAfter: doublePrecision("balance_after").notNull(),
   sharesBefore: doublePrecision("shares_before").notNull(),
@@ -46,8 +44,7 @@ export const prices = pgTable("prices", {
   id: uuid("id").primaryKey().defaultRandom(),
   assetId: text("asset_id")
     .references(() => assets.id)
-    .notNull()
-    .unique(),
+    .notNull(),
   price: doublePrecision("price").notNull(),
   timestamp: timestamp("timestamp").defaultNow().notNull().unique(),
 });
