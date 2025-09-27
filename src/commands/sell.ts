@@ -77,6 +77,7 @@ export default commandModule({
     // check if the user can sell that much of the asset
     // add a transaction of the user selling the asset
     // update the user's balance
+    // assign new roles
 
     await ctx.reply(`Selling ${ctx.options.getString("asset", true)}`);
   },

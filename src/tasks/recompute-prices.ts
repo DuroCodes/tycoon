@@ -1,4 +1,5 @@
 import { scheduledTask } from "@sern/handler";
+import { assignAllRoles } from "~/utils/assign-roles";
 import { computeAssetPrices } from "~/utils/compute-prices";
 
 export default scheduledTask({
@@ -9,5 +10,10 @@ export default scheduledTask({
   timezone: "America/New_York",
   execute: async (_ctx, sdt) => {
     await computeAssetPrices(sdt);
+
+    const guilds = await sdt.deps["@sern/client"].guilds.fetch();
+    for (const [, guild] of guilds) {
+      await assignAllRoles(guild.id, sdt.deps["@sern/client"]);
+    }
   },
 });

@@ -7,6 +7,7 @@ import { cleanCompanyName, formatMoney } from "~/utils/formatting";
 import { assets, users, transactions } from "~/db/schema";
 import { or, ilike, eq, desc, and } from "drizzle-orm";
 import { container } from "~/utils/components";
+import { assignRoles } from "~/utils/assign-roles";
 
 export default commandModule({
   type: CommandType.Slash,
@@ -150,6 +151,8 @@ export default commandModule({
     const company = cleanCompanyName(asset.name);
     const sharesString = shareAmount === 1 ? "share" : "shares";
     const newBalance = formatMoney(user.balance - moneyAmount);
+
+    await assignRoles(user.id, ctx.guildId!, ctx.client);
 
     return ctx.reply({
       components: [
