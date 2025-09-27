@@ -48,6 +48,7 @@ export default commandModule({
       name: "amount",
       description: "The amount of shares to buy",
       type: ApplicationCommandOptionType.Number,
+      min_value: 0,
       required: true,
     },
     {
