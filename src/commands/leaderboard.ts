@@ -47,14 +47,22 @@ export default commandModule({
       Boolean,
     );
 
-    const leaderboard = usersWithWorth
-      .sort((a, b) => b!.totalWorth - a!.totalWorth)
-      .map((user) => ({
-        user: user!.user.displayName,
-        id: user!.id,
-        balance: user!.balance,
-        totalWorth: user!.totalWorth,
-      }));
+    const sortedUsers = usersWithWorth.sort(
+      (a, b) => b!.totalWorth - a!.totalWorth,
+    );
+
+    const top = sortedUsers.slice(0, 5);
+    const bottom = sortedUsers.slice(-5);
+
+    const combinedUsers = [...top];
+    if (sortedUsers.length > 10) combinedUsers.push(...bottom);
+
+    const leaderboard = combinedUsers.map((user) => ({
+      user: user!.user.displayName,
+      id: user!.id,
+      balance: user!.balance,
+      totalWorth: user!.totalWorth,
+    }));
 
     const rankEmojis = {
       0: "🥇",
