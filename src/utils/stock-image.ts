@@ -36,7 +36,6 @@ export const generateValueChartPng = async (
     period = "30d",
   } = options;
 
-  // Determine time display format based on period
   const periodConfig = {
     "1d": { timeDisplayFormat: "HH:mm", maxTicksLimit: 8 },
     "7d": { timeDisplayFormat: "MM/dd HH:mm", maxTicksLimit: 7 },
@@ -49,9 +48,9 @@ export const generateValueChartPng = async (
     periodConfig[period as keyof typeof periodConfig] ?? periodConfig["30d"];
   const { timeDisplayFormat, maxTicksLimit } = config;
 
-  // For single data point, we can't determine if it's up or down, so use neutral color
   const isUp =
     points.length > 1 ? points.at(-1)!.value >= points[0].value : true;
+
   const colors = isUp
     ? {
         border: colorUp,

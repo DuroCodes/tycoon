@@ -71,8 +71,7 @@ export const getUserBalanceOverTime = async (
     )
     .orderBy(transactions.timestamp);
 
-  // If user has no transactions, get their current balance
-  if (userTransactions.length === 0) {
+  if (!userTransactions.length) {
     const user = await getUser(userId, guildId);
     return [
       {
