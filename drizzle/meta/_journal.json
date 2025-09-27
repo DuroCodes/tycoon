@@ -57,6 +57,20 @@
       "when": 1758762419757,
       "tag": "0007_medical_peter_quill",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1758944303201,
+      "tag": "0008_zippy_bloodscream",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1758944986972,
+      "tag": "0009_living_rockslide",
+      "breakpoints": true
     }
   ]
 }

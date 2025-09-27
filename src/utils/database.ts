@@ -1,5 +1,5 @@
 import { db } from "~/db/client";
-import { assets, users, prices, transactions } from "~/db/schema";
+import { assets, users, prices, transactions, roleConfig } from "~/db/schema";
 import { eq, desc, and } from "drizzle-orm";
 import { Err, Ok } from "./result";
 import { getStockInfo } from "./yfinance";
@@ -86,4 +86,24 @@ export const getUserBalanceOverTime = async (
     value: t.balanceAfter,
     timestamp: t.timestamp,
   }));
+};
+
+export const getRoleConfig = async (guildId: string, roleId: string) => {
+  const config = await db
+    .select()
+    .from(roleConfig)
+    .where(and(eq(roleConfig.guildId, guildId), eq(roleConfig.roleId, roleId)))
+    .limit(1);
+
+  return config.length > 0 ? config[0] : null;
+};
+
+export const getAllRoleConfigs = async (guildId: string) => {
+  const configs = await db
+    .select()
+    .from(roleConfig)
+    .where(eq(roleConfig.guildId, guildId))
+    .orderBy(desc(roleConfig.threshold));
+
+  return configs;
 };

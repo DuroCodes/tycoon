@@ -32,6 +32,7 @@
   },
   "devDependencies": {
     "@types/node": "^17.0.25",
+    "prettier": "^3.6.2",
     "typescript": "^5.0"
   },
   "type": "module"

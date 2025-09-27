@@ -14,6 +14,7 @@ export const COLOR_MAP = {
   person: 0xdedfe1,
   neutral: 0xdedfe1,
   trophy: 0xf1c40f,
+  warning: 0xffcc4d,
 } as const;
 
 export const EMOJI_MAP = {
@@ -25,6 +26,7 @@ export const EMOJI_MAP = {
   person: "<:person:1420604897228754954>",
   trophy: "<:trophy:1420609170897502218>",
   neutral: "<:neutral:1420619776807403530>",
+  warning: "<:warning:1421333566851256431>",
 } as const;
 
 type ContainerVariant = keyof typeof COLOR_MAP;

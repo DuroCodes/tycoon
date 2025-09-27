@@ -12,7 +12,7 @@ export const users = pgTable(
   "users",
   {
     id: text("id").notNull(),
-    guildId: text("guild_id").notNull().default("1418305021296251063"),
+    guildId: text("guild_id").notNull(),
     balance: doublePrecision("balance").default(1000).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
@@ -31,7 +31,7 @@ export const transactionTypeEnum = pgEnum("transaction_type", ["buy", "sell"]);
 export const transactions = pgTable("transactions", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: text("user_id").notNull(),
-  guildId: text("guild_id").notNull().default("1418305021296251063"),
+  guildId: text("guild_id").notNull(),
   assetId: text("asset_id")
     .references(() => assets.id)
     .notNull(),
@@ -56,4 +56,16 @@ export const prices = pgTable(
     timestamp: timestamp("timestamp").defaultNow().notNull(),
   },
   (t) => [unique().on(t.assetId, t.timestamp)],
+);
+
+export const roleConfig = pgTable(
+  "role_config",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    guildId: text("guild_id").notNull(),
+    roleId: text("role_id").notNull(),
+    threshold: doublePrecision("threshold").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [unique().on(t.guildId, t.roleId)],
 );
