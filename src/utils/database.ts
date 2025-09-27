@@ -1,6 +1,6 @@
 import { db } from "~/db/client";
 import { assets, users, prices, transactions, roleConfig } from "~/db/schema";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, lte } from "drizzle-orm";
 import { Err, Ok } from "./result";
 import { getStockInfo } from "./yfinance";
 
@@ -78,10 +78,7 @@ export const getAllRoleConfigs = async (guildId: string) => {
 
 export const getUserWorthOverTime = async (userId: string, guildId: string) => {
   const userTransactions = await db
-    .select({
-      balanceAfter: transactions.balanceAfter,
-      timestamp: transactions.timestamp,
-    })
+    .select()
     .from(transactions)
     .where(
       and(eq(transactions.userId, userId), eq(transactions.guildId, guildId)),
@@ -98,42 +95,46 @@ export const getUserWorthOverTime = async (userId: string, guildId: string) => {
     ];
   }
 
-  const timestamps = [...new Set(userTransactions.map((t) => t.timestamp))];
-  const worthData = [];
+  const worthOverTime = [];
+  let portfolio = new Map<string, number>();
 
-  for (const timestamp of timestamps) {
-    const balanceTransaction = userTransactions.find(
-      (t) => t.timestamp === timestamp,
-    );
-    if (!balanceTransaction) continue;
+  const calculatePortfolioValue = async (portfolio: Map<string, number>) => {
+    const pricePromises = Array.from(portfolio.entries())
+      .filter(([, shares]) => shares > 0)
+      .map(async ([assetId, shares]) => {
+        const price = await getLatestPrice(assetId);
+        return price ? shares * price.price : 0;
+      });
 
-    const transactionsUpToNow = await db
-      .select({
-        assetId: transactions.assetId,
-        sharesAfter: transactions.sharesAfter,
-        pricePerShare: transactions.pricePerShare,
-      })
-      .from(transactions)
-      .where(
-        and(
-          eq(transactions.userId, userId),
-          eq(transactions.guildId, guildId),
-          eq(transactions.timestamp, timestamp),
-        ),
-      );
+    const values = await Promise.all(pricePromises);
+    return values.reduce((sum, value) => sum + value, 0);
+  };
 
-    let assetWorth = 0;
-    for (const transaction of transactionsUpToNow) {
-      if (transaction.sharesAfter > 0) {
-        assetWorth += transaction.sharesAfter * transaction.pricePerShare;
-      }
-    }
+  for (const transaction of userTransactions) {
+    const currentShares = portfolio.get(transaction.assetId) || 0;
+    const newShares =
+      transaction.type === "buy"
+        ? currentShares + transaction.shares
+        : currentShares - transaction.shares;
 
-    worthData.push({
-      value: balanceTransaction.balanceAfter + assetWorth,
-      timestamp,
+    portfolio.set(transaction.assetId, newShares);
+
+    const assetValue = await calculatePortfolioValue(portfolio);
+    worthOverTime.push({
+      value: transaction.balanceAfter + assetValue,
+      timestamp: transaction.timestamp,
     });
   }
 
-  return worthData;
+  if (userTransactions.length > 0) {
+    const currentUser = await getUser(userId, guildId);
+    const currentAssetValue = await calculatePortfolioValue(portfolio);
+
+    worthOverTime.push({
+      value: currentUser.balance + currentAssetValue,
+      timestamp: new Date(),
+    });
+  }
+
+  return worthOverTime;
 };
