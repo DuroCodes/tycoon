@@ -1,11 +1,13 @@
 import { commandModule, CommandType } from "@sern/handler";
-import { ApplicationCommandOptionType } from "discord.js";
+import { ApplicationCommandOptionType, MessageFlags } from "discord.js";
 import { databaseUser } from "~/plugins/database-user";
-import { cleanCompanyName } from "~/utils/formatting";
+import { cleanCompanyName, formatMoney } from "~/utils/formatting";
 import { getPortfolioData } from "~/utils/portfolio";
 import { db } from "~/db/client";
-import { assets } from "~/db/schema";
-import { inArray } from "drizzle-orm";
+import { assets, transactions, users } from "~/db/schema";
+import { eq, inArray } from "drizzle-orm";
+import { container, EMOJI_MAP } from "~/utils/components";
+import { getLatestPrice } from "~/utils/database";
 
 export default commandModule({
   type: CommandType.Slash,
@@ -36,7 +38,7 @@ export default commandModule({
             .filter(
               (asset) =>
                 asset.id.toLowerCase().includes(focus.toLowerCase()) ||
-                asset.name.toLowerCase().includes(focus.toLowerCase()),
+                asset.name.toLowerCase().includes(focus.toLowerCase())
             )
             .slice(0, 25);
 
@@ -44,7 +46,7 @@ export default commandModule({
             filteredAssets.map((a) => ({
               name: `${a.id} (${cleanCompanyName(a.name)})`,
               value: a.id,
-            })),
+            }))
           );
         },
       },
@@ -53,6 +55,7 @@ export default commandModule({
       name: "amount",
       description: "The amount of shares to sell",
       type: ApplicationCommandOptionType.Number,
+      min_value: 0,
       required: true,
     },
     {
@@ -74,11 +77,93 @@ export default commandModule({
   ],
   execute: async (ctx) => {
     // todo: start working on sell functionality
-    // check if the user can sell that much of the asset
-    // add a transaction of the user selling the asset
-    // update the user's balance
     // assign new roles
+    const { ownedAssets } = await getPortfolioData(ctx.user.id, ctx.guildId!);
+    const asset = ownedAssets.find(
+      (asset) => asset.assetId === ctx.options.getString("asset", true)
+    );
 
-    await ctx.reply(`Selling ${ctx.options.getString("asset", true)}`);
+    if (!asset) {
+      return ctx.reply("You don't own that asset");
+    }
+
+    const assetName = (
+      await db
+        .select()
+        .from(assets)
+        .where(eq(assets.id, asset.assetId))
+        .limit(1)
+    )[0].name;
+
+    const amount = ctx.options.getNumber("amount", true);
+    const type = ctx.options.getString("type", true);
+    const latestPrice = (await getLatestPrice(asset.assetId))!.price;
+    const shareAmount = type === "money" ? amount / latestPrice : amount;
+    const sharesString = shareAmount === 1 ? "share" : "shares";
+
+    if (amount <= 0) {
+      return ctx.reply({
+        components: [
+          container("error", "Invalid sell amount: must be greater than 0"),
+        ],
+        flags: MessageFlags.IsComponentsV2,
+      });
+    }
+
+    if (asset.shares < shareAmount) {
+      return ctx.reply({
+        components: [
+          container("error", "Invalid sell amount: not enough shares"),
+        ],
+        flags: MessageFlags.IsComponentsV2,
+      });
+    }
+
+    const balanceBefore = (
+      await db
+        .select({ balance: users.balance })
+        .from(users)
+        .where(eq(users.id, ctx.user.id))
+        .limit(1)
+    )[0].balance;
+
+    const balanceAfter = balanceBefore + shareAmount * latestPrice;
+
+    const difference = asset.difference * shareAmount;
+
+    const changeEmoji =
+      difference > 0
+        ? EMOJI_MAP.gain
+        : difference < 0
+          ? EMOJI_MAP.loss
+          : EMOJI_MAP.neutral;
+
+    await db
+      .update(users)
+      .set({ balance: balanceAfter })
+      .where(eq(users.id, ctx.user.id));
+
+    await db.insert(transactions).values({
+      userId: ctx.user.id,
+      guildId: ctx.guildId!,
+      assetId: asset.assetId,
+      type: "sell",
+      shares: shareAmount,
+      pricePerShare: latestPrice,
+      balanceBefore,
+      balanceAfter,
+      sharesBefore: asset.shares,
+      sharesAfter: asset.shares - shareAmount,
+    });
+
+    return ctx.reply({
+      components: [
+        container(
+          "success",
+          `**Amount:** ${formatMoney(shareAmount * latestPrice)} (${changeEmoji + formatMoney(Math.abs(difference))})\n**Shares:** ${Number.isInteger(shareAmount) ? shareAmount : shareAmount.toFixed(4)} ${sharesString}\n**Asset:** ${asset.assetId} (${cleanCompanyName(assetName)})\n\n-# Your new balance is **${formatMoney(balanceAfter)}**`
+        ),
+      ],
+      flags: MessageFlags.IsComponentsV2,
+    });
   },
 });
