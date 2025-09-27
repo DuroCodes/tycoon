@@ -72,6 +72,18 @@ export default commandModule({
     const user = await getUser(ctx.user.id, ctx.guildId!);
     const type = ctx.options.getString("type", true);
     const amount = ctx.options.getNumber("amount", true);
+
+    if (amount <= 0)
+      return ctx.reply({
+        components: [
+          container(
+            "error",
+            "Invalid buy amount. Please enter a positive number.",
+          ),
+        ],
+        flags: MessageFlags.IsComponentsV2,
+      });
+
     const assetQuery = await db
       .select()
       .from(assets)
