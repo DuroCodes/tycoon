@@ -67,7 +67,7 @@ export default commandModule({
     },
   ],
   execute: async (ctx) => {
-    const user = await getUser(ctx.user.id);
+    const user = await getUser(ctx.user.id, ctx.guildId!);
     const type = ctx.options.getString("type", true);
     const amount = ctx.options.getNumber("amount", true);
     const assetQuery = await db
@@ -114,6 +114,7 @@ export default commandModule({
       .where(
         and(
           eq(transactions.userId, user.id),
+          eq(transactions.guildId, ctx.guildId!),
           eq(transactions.assetId, asset.id),
         ),
       )
@@ -126,6 +127,7 @@ export default commandModule({
 
     await db.insert(transactions).values({
       userId: user.id,
+      guildId: ctx.guildId!,
       assetId: asset.id,
       type: "buy",
       shares: shareAmount,
@@ -139,7 +141,7 @@ export default commandModule({
     await db
       .update(users)
       .set({ balance: user.balance - moneyAmount })
-      .where(eq(users.id, user.id));
+      .where(and(eq(users.id, user.id), eq(users.guildId, ctx.guildId!)));
 
     const money = formatMoney(moneyAmount);
     const shares = Number.isInteger(shareAmount)

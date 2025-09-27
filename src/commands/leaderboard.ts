@@ -8,7 +8,7 @@ import {
   SeparatorBuilder,
   TextDisplayBuilder,
 } from "discord.js";
-import { desc } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "~/db/client";
 import { users } from "~/db/schema";
 import { databaseUser } from "~/plugins/database-user";
@@ -23,7 +23,8 @@ export default commandModule({
   execute: async (ctx) => {
     const allUsers = await db
       .select({ user: users.id, balance: users.balance })
-      .from(users);
+      .from(users)
+      .where(eq(users.guildId, ctx.guildId!));
 
     const userWorthPromises = allUsers.map(async (userData) => {
       const fetchedUser = await ctx.client.users
@@ -32,7 +33,7 @@ export default commandModule({
 
       if (!fetchedUser || fetchedUser.id === ctx.client.user?.id) return null;
 
-      const totalWorth = await getTotalWorth(userData.user);
+      const totalWorth = await getTotalWorth(userData.user, ctx.guildId!);
 
       return {
         user: fetchedUser,

@@ -17,14 +17,16 @@ import {
 import { formatMoney } from "~/utils/formatting";
 import { generateValueChartPng } from "~/utils/stock-image";
 
-const getUserAssetData = async (userId: string) => {
+const getUserAssetData = async (userId: string, guildId: string) => {
   const latestTimestamps = db
     .select({
       assetId: transactions.assetId,
       maxTimestamp: max(transactions.timestamp).as("maxTimestamp"),
     })
     .from(transactions)
-    .where(eq(transactions.userId, userId))
+    .where(
+      and(eq(transactions.userId, userId), eq(transactions.guildId, guildId)),
+    )
     .groupBy(transactions.assetId)
     .as("latest_timestamps");
 
@@ -42,7 +44,9 @@ const getUserAssetData = async (userId: string) => {
         eq(transactions.timestamp, latestTimestamps.maxTimestamp),
       ),
     )
-    .where(eq(transactions.userId, userId));
+    .where(
+      and(eq(transactions.userId, userId), eq(transactions.guildId, guildId)),
+    );
 
   const latestPrices = await Promise.all(
     assetTransactions.map((t) => getLatestPrice(t.assetId)),
@@ -55,17 +59,17 @@ const getUserAssetData = async (userId: string) => {
   }));
 };
 
-export const getTotalWorth = async (userId: string) => {
-  const { balance } = await getUser(userId);
-  const assetData = await getUserAssetData(userId);
+export const getTotalWorth = async (userId: string, guildId: string) => {
+  const { balance } = await getUser(userId, guildId);
+  const assetData = await getUserAssetData(userId, guildId);
   const ownedAssets = assetData.filter((t) => t.shares > 0);
   const totalWorth = ownedAssets.reduce((acc, t) => acc + t.worth, 0) + balance;
   return totalWorth;
 };
 
-export const getPortfolioData = async (userId: string) => {
-  const { balance } = await getUser(userId);
-  const assetData = await getUserAssetData(userId);
+export const getPortfolioData = async (userId: string, guildId: string) => {
+  const { balance } = await getUser(userId, guildId);
+  const assetData = await getUserAssetData(userId, guildId);
 
   const originalBuyPrices = await Promise.all(
     assetData.map(async (t) => {
@@ -75,6 +79,7 @@ export const getPortfolioData = async (userId: string) => {
         .where(
           and(
             eq(transactions.userId, userId),
+            eq(transactions.guildId, guildId),
             eq(transactions.assetId, t.assetId),
             eq(transactions.type, "buy"),
           ),
@@ -94,7 +99,7 @@ export const getPortfolioData = async (userId: string) => {
     .sort((a, b) => b.worth - a.worth);
 
   const ownedAssets = zipped.filter((t) => t.shares > 0);
-  const totalWorth = await getTotalWorth(userId);
+  const totalWorth = await getTotalWorth(userId, guildId);
 
   let portfolioContent = "";
 
@@ -131,7 +136,7 @@ export const getPortfolioData = async (userId: string) => {
 
   let balanceChartBuffer: Buffer | null = null;
   try {
-    const balanceData = await getUserBalanceOverTime(userId);
+    const balanceData = await getUserBalanceOverTime(userId, guildId);
     if (balanceData.length > 1)
       balanceChartBuffer = await generateValueChartPng(balanceData, {
         yAxisFormatter: (value) => formatMoney(value),
@@ -152,8 +157,9 @@ export const getPortfolioData = async (userId: string) => {
 export const buildPortfolioComponents = async (
   userId: string,
   userDisplayName: string,
+  guildId: string,
 ) => {
-  const portfolioData = await getPortfolioData(userId);
+  const portfolioData = await getPortfolioData(userId, guildId);
   const attachments: AttachmentBuilder[] = [];
 
   if (portfolioData.balanceChartBuffer) {

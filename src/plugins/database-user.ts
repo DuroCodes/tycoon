@@ -4,7 +4,9 @@ import { getUser } from "~/utils/database";
 export const databaseUser = () =>
   CommandControlPlugin(async (ctx, sdt) => {
     try {
-      await getUser(ctx.user.id);
+      if (!ctx.guildId)
+        return controller.stop("This command can only be used in a server");
+      await getUser(ctx.user.id, ctx.guildId);
       return controller.next();
     } catch (error) {
       sdt.deps["@sern/logger"]?.error({

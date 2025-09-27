@@ -21,7 +21,9 @@ export default commandModule({
       command: {
         execute: async (ctx) => {
           const focus = ctx.options.getFocused();
-          const ownedAssets = (await getPortfolioData(ctx.user.id)).ownedAssets;
+          const ownedAssets = (
+            await getPortfolioData(ctx.user.id, ctx.guildId!)
+          ).ownedAssets;
 
           const ownedAssetIds = ownedAssets.map((asset) => asset.assetId);
 
