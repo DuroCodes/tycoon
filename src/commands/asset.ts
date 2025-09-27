@@ -36,8 +36,8 @@ export default commandModule({
             .where(
               or(
                 ilike(assets.id, `%${focus}%`),
-                ilike(assets.name, `%${focus}%`),
-              ),
+                ilike(assets.name, `%${focus}%`)
+              )
             )
             .limit(25);
 
@@ -45,7 +45,7 @@ export default commandModule({
             asset.map((a) => ({
               name: `${a.id} (${cleanCompanyName(a.name)})`,
               value: a.id,
-            })),
+            }))
           );
         },
       },
@@ -104,7 +104,7 @@ export default commandModule({
       })
       .from(prices)
       .where(
-        and(eq(prices.assetId, asset.id), gte(prices.timestamp, startDate)),
+        and(eq(prices.assetId, asset.id), gte(prices.timestamp, startDate))
       )
       .orderBy(prices.timestamp);
 
@@ -123,6 +123,15 @@ export default commandModule({
     };
 
     const shortDescription = getSentences(asset.description);
+
+    if (priceHistory.length < 2) {
+      return ctx.reply({
+        components: [
+          container("error", "No price history available for this period"),
+        ],
+        flags: MessageFlags.IsComponentsV2,
+      });
+    }
 
     const priceChange = priceHistory.at(-1)!.price >= priceHistory[0].price;
     const priceChangeMode = priceChange ? "gain" : "loss";
@@ -175,7 +184,7 @@ export default commandModule({
               media: { url: `attachment://${asset.id}-chart-${period}.png` },
             }).toJSON(),
           ],
-        }).toJSON(),
+        }).toJSON()
       );
     }
 
@@ -184,7 +193,7 @@ export default commandModule({
         content: displayPrice
           ? `-# **Price:** ${formatMoney(displayPrice)}`
           : "-# Price not available",
-      }).toJSON(),
+      }).toJSON()
     );
 
     const attachments = chartAttachment ? [chartAttachment] : [];
@@ -196,7 +205,7 @@ export default commandModule({
           components,
           `### ${priceChangeEmoji} ${cleanCompanyName(asset.name)} - \`${
             asset.id
-          }\``,
+          }\``
         ),
       ],
       files: attachments,
