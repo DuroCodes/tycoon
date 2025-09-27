@@ -1,6 +1,6 @@
 import { db } from "~/db/client";
 import { assets, users, prices, transactions, roleConfig } from "~/db/schema";
-import { eq, desc, and, lte } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import { Err, Ok } from "./result";
 import { getStockInfo } from "./yfinance";
 
