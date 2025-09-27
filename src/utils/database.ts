@@ -56,10 +56,27 @@ export const getLatestPrice = async (assetId: string) => {
   return priceQuery.length > 0 ? priceQuery[0] : null;
 };
 
-export const getUserBalanceOverTime = async (
-  userId: string,
-  guildId: string,
-) => {
+export const getRoleConfig = async (guildId: string, roleId: string) => {
+  const config = await db
+    .select()
+    .from(roleConfig)
+    .where(and(eq(roleConfig.guildId, guildId), eq(roleConfig.roleId, roleId)))
+    .limit(1);
+
+  return config.length > 0 ? config[0] : null;
+};
+
+export const getAllRoleConfigs = async (guildId: string) => {
+  const configs = await db
+    .select()
+    .from(roleConfig)
+    .where(eq(roleConfig.guildId, guildId))
+    .orderBy(desc(roleConfig.threshold));
+
+  return configs;
+};
+
+export const getUserWorthOverTime = async (userId: string, guildId: string) => {
   const userTransactions = await db
     .select({
       balanceAfter: transactions.balanceAfter,
@@ -81,28 +98,42 @@ export const getUserBalanceOverTime = async (
     ];
   }
 
-  return userTransactions.map((t) => ({
-    value: t.balanceAfter,
-    timestamp: t.timestamp,
-  }));
-};
+  const timestamps = [...new Set(userTransactions.map((t) => t.timestamp))];
+  const worthData = [];
 
-export const getRoleConfig = async (guildId: string, roleId: string) => {
-  const config = await db
-    .select()
-    .from(roleConfig)
-    .where(and(eq(roleConfig.guildId, guildId), eq(roleConfig.roleId, roleId)))
-    .limit(1);
+  for (const timestamp of timestamps) {
+    const balanceTransaction = userTransactions.find(
+      (t) => t.timestamp === timestamp,
+    );
+    if (!balanceTransaction) continue;
 
-  return config.length > 0 ? config[0] : null;
-};
+    const transactionsUpToNow = await db
+      .select({
+        assetId: transactions.assetId,
+        sharesAfter: transactions.sharesAfter,
+        pricePerShare: transactions.pricePerShare,
+      })
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.userId, userId),
+          eq(transactions.guildId, guildId),
+          eq(transactions.timestamp, timestamp),
+        ),
+      );
 
-export const getAllRoleConfigs = async (guildId: string) => {
-  const configs = await db
-    .select()
-    .from(roleConfig)
-    .where(eq(roleConfig.guildId, guildId))
-    .orderBy(desc(roleConfig.threshold));
+    let assetWorth = 0;
+    for (const transaction of transactionsUpToNow) {
+      if (transaction.sharesAfter > 0) {
+        assetWorth += transaction.sharesAfter * transaction.pricePerShare;
+      }
+    }
 
-  return configs;
+    worthData.push({
+      value: balanceTransaction.balanceAfter + assetWorth,
+      timestamp,
+    });
+  }
+
+  return worthData;
 };

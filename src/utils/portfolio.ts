@@ -12,7 +12,7 @@ import { container, EMOJI_MAP } from "~/utils/components";
 import {
   getLatestPrice,
   getUser,
-  getUserBalanceOverTime,
+  getUserWorthOverTime,
 } from "~/utils/database";
 import { formatMoney } from "~/utils/formatting";
 import { generateValueChartPng } from "~/utils/stock-image";
@@ -110,15 +110,15 @@ export const getPortfolioData = async (userId: string, guildId: string) => {
         t.difference > 0
           ? `+${formatMoney(t.difference)}`
           : t.difference < 0
-          ? `${formatMoney(t.difference)}`
-          : null;
+            ? `${formatMoney(t.difference)}`
+            : null;
 
       const changeEmoji =
         t.difference > 0
           ? EMOJI_MAP.gain
           : t.difference < 0
-          ? EMOJI_MAP.loss
-          : EMOJI_MAP.neutral;
+            ? EMOJI_MAP.loss
+            : EMOJI_MAP.neutral;
 
       const shares = t.shares.toFixed(4);
       const worth = formatMoney(t.worth);
@@ -134,15 +134,15 @@ export const getPortfolioData = async (userId: string, guildId: string) => {
 
   portfolioContent += `-# Total Worth: **${formatMoney(totalWorth)}**`;
 
-  let balanceChartBuffer: Buffer | null = null;
+  let worthChartBuffer: Buffer | null = null;
   try {
-    const balanceData = await getUserBalanceOverTime(userId, guildId);
-    if (balanceData.length > 1)
-      balanceChartBuffer = await generateValueChartPng(balanceData, {
+    const worthData = await getUserWorthOverTime(userId, guildId);
+    if (worthData.length > 1)
+      worthChartBuffer = await generateValueChartPng(worthData, {
         yAxisFormatter: (value) => formatMoney(value),
       });
   } catch (error) {
-    console.error("Failed to generate balance chart:", error);
+    console.error("Failed to generate worth chart:", error);
   }
 
   return {
@@ -150,7 +150,7 @@ export const getPortfolioData = async (userId: string, guildId: string) => {
     totalWorth,
     ownedAssets,
     portfolioContent,
-    balanceChartBuffer,
+    worthChartBuffer,
   };
 };
 
@@ -162,11 +162,11 @@ export const buildPortfolioComponents = async (
   const portfolioData = await getPortfolioData(userId, guildId);
   const attachments: AttachmentBuilder[] = [];
 
-  if (portfolioData.balanceChartBuffer) {
+  if (portfolioData.worthChartBuffer) {
     const chartAttachment = new AttachmentBuilder(
-      portfolioData.balanceChartBuffer,
+      portfolioData.worthChartBuffer,
       {
-        name: "balance-chart.png",
+        name: "worth-chart.png",
       },
     );
     attachments.push(chartAttachment);
@@ -177,11 +177,11 @@ export const buildPortfolioComponents = async (
       content: `Balance: **${formatMoney(portfolioData.balance)}**`,
     }).toJSON(),
 
-    portfolioData.balanceChartBuffer
+    portfolioData.worthChartBuffer
       ? new MediaGalleryBuilder({
           items: [
             new ThumbnailBuilder({
-              media: { url: "attachment://balance-chart.png" },
+              media: { url: "attachment://worth-chart.png" },
             }).toJSON(),
           ],
         }).toJSON()
