@@ -200,10 +200,10 @@ export default commandModule({
 
     const actionText =
       subcommand === "set"
-        ? `Set to`
+        ? "Set to"
         : subcommand === "add"
-          ? `Added`
-          : `Removed`;
+          ? "Added"
+          : "Removed";
 
     const company = cleanCompanyName(asset.name);
 
