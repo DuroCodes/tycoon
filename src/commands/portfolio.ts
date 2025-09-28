@@ -1,6 +1,11 @@
 import { commandModule, CommandType } from "@sern/handler";
-import { ApplicationCommandOptionType, MessageFlags } from "discord.js";
+import {
+  ApplicationCommandOptionType,
+  GuildMember,
+  MessageFlags,
+} from "discord.js";
 import { databaseUser } from "~/plugins/database-user";
+import { container } from "~/utils/components";
 import { buildPortfolioComponents } from "~/utils/portfolio";
 
 export default commandModule({
@@ -16,7 +21,9 @@ export default commandModule({
     },
   ],
   execute: async (ctx) => {
-    const user = ctx.options.getUser("user") || ctx.user;
+    const user = ctx.options.getMember("user") || ctx.member;
+    if (!user || !(user instanceof GuildMember)) return;
+
     const { components, attachments } = await buildPortfolioComponents(
       user.id,
       user.displayName,

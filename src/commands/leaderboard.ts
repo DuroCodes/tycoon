@@ -27,7 +27,7 @@ export default commandModule({
       .where(eq(users.guildId, ctx.guildId!));
 
     const userWorthPromises = allUsers.map(async (userData) => {
-      const fetchedUser = await ctx.client.users
+      const fetchedUser = await ctx.guild?.members
         .fetch(userData.user)
         .catch(() => null);
 
