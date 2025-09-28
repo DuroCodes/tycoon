@@ -14,7 +14,7 @@ import {
   getUser,
   getUserWorthOverTime,
 } from "~/utils/database";
-import { formatMoney } from "~/utils/formatting";
+import { formatMoney, formatShares } from "~/utils/formatting";
 import { generateValueChartPng } from "~/utils/stock-image";
 
 const getUserAssetData = async (userId: string, guildId: string) => {
@@ -120,12 +120,8 @@ export const getPortfolioData = async (userId: string, guildId: string) => {
             ? EMOJI_MAP.loss
             : EMOJI_MAP.neutral;
 
-      const shares = t.shares.toFixed(4);
       const worth = formatMoney(t.worth);
-      const shareForm = t.shares === 1 ? "share" : "shares";
-      const shareText = Number.isInteger(t.shares)
-        ? `${t.shares} ${shareForm}`
-        : `${shares} ${shareForm}`;
+      const shareText = formatShares(t.shares);
       const priceStr = priceChange ? ` (${priceChange})` : "";
 
       portfolioContent += `- ${changeEmoji} **${t.assetId}** • ${worth}${priceStr} • ${shareText}\n`;

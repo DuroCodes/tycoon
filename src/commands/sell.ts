@@ -1,7 +1,11 @@
 import { commandModule, CommandType } from "@sern/handler";
 import { ApplicationCommandOptionType, MessageFlags } from "discord.js";
 import { databaseUser } from "~/plugins/database-user";
-import { cleanCompanyName, formatMoney } from "~/utils/formatting";
+import {
+  cleanCompanyName,
+  formatMoney,
+  formatShares,
+} from "~/utils/formatting";
 import { getPortfolioData } from "~/utils/portfolio";
 import { db } from "~/db/client";
 import { assets, transactions, users } from "~/db/schema";
@@ -38,7 +42,7 @@ export default commandModule({
             .filter(
               (asset) =>
                 asset.id.toLowerCase().includes(focus.toLowerCase()) ||
-                asset.name.toLowerCase().includes(focus.toLowerCase())
+                asset.name.toLowerCase().includes(focus.toLowerCase()),
             )
             .slice(0, 25);
 
@@ -46,7 +50,7 @@ export default commandModule({
             filteredAssets.map((a) => ({
               name: `${a.id} (${cleanCompanyName(a.name)})`,
               value: a.id,
-            }))
+            })),
           );
         },
       },
@@ -80,12 +84,13 @@ export default commandModule({
     // assign new roles
     const { ownedAssets } = await getPortfolioData(ctx.user.id, ctx.guildId!);
     const asset = ownedAssets.find(
-      (asset) => asset.assetId === ctx.options.getString("asset", true)
+      (asset) => asset.assetId === ctx.options.getString("asset", true),
     );
 
-    if (!asset) {
-      return ctx.reply("You don't own that asset");
-    }
+    if (!asset)
+      return ctx.reply({
+        components: [container("error", "You do not own that asset")],
+      });
 
     const assetName = (
       await db
@@ -99,25 +104,22 @@ export default commandModule({
     const type = ctx.options.getString("type", true);
     const latestPrice = (await getLatestPrice(asset.assetId))!.price;
     const shareAmount = type === "money" ? amount / latestPrice : amount;
-    const sharesString = shareAmount === 1 ? "share" : "shares";
 
-    if (amount <= 0) {
+    if (amount <= 0)
       return ctx.reply({
         components: [
           container("error", "Invalid sell amount: must be greater than 0"),
         ],
         flags: MessageFlags.IsComponentsV2,
       });
-    }
 
-    if (asset.shares < shareAmount) {
+    if (asset.shares < shareAmount)
       return ctx.reply({
         components: [
           container("error", "Invalid sell amount: not enough shares"),
         ],
         flags: MessageFlags.IsComponentsV2,
       });
-    }
 
     const balanceBefore = (
       await db
@@ -160,7 +162,7 @@ export default commandModule({
       components: [
         container(
           "success",
-          `**Amount:** ${formatMoney(shareAmount * latestPrice)} (${changeEmoji + formatMoney(Math.abs(difference))})\n**Shares:** ${Number.isInteger(shareAmount) ? shareAmount : shareAmount.toFixed(4)} ${sharesString}\n**Asset:** ${asset.assetId} (${cleanCompanyName(assetName)})\n\n-# Your new balance is **${formatMoney(balanceAfter)}**`
+          `**Amount:** ${formatMoney(shareAmount * latestPrice)} (${changeEmoji + formatMoney(Math.abs(difference))})\n**Shares:** ${formatShares(shareAmount)}\n**Asset:** ${asset.assetId} (${cleanCompanyName(assetName)})\n\n-# Your new balance is **${formatMoney(balanceAfter)}**`,
         ),
       ],
       flags: MessageFlags.IsComponentsV2,

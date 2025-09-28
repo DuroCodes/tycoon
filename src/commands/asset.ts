@@ -8,13 +8,14 @@ import {
   APIComponentInContainer,
 } from "discord.js";
 import { ApplicationCommandOptionType } from "discord.js";
-import { eq, ilike, or, and, gte } from "drizzle-orm";
+import { eq, and, gte } from "drizzle-orm";
 import { db } from "~/db/client";
 import { assets, prices } from "~/db/schema";
 import { container, EMOJI_MAP } from "~/utils/components";
 import { cleanCompanyName, formatMoney } from "~/utils/formatting";
 import { generateValueChartPng } from "~/utils/stock-image";
 import { getLatestPrice } from "~/utils/database";
+import { assetAutocomplete } from "~/utils/autocomplete";
 
 export default commandModule({
   type: CommandType.Slash,
@@ -26,29 +27,7 @@ export default commandModule({
       type: ApplicationCommandOptionType.String,
       required: true,
       autocomplete: true,
-      command: {
-        execute: async (ctx) => {
-          const focus = ctx.options.getFocused();
-
-          const asset = await db
-            .select()
-            .from(assets)
-            .where(
-              or(
-                ilike(assets.id, `%${focus}%`),
-                ilike(assets.name, `%${focus}%`)
-              )
-            )
-            .limit(25);
-
-          await ctx.respond(
-            asset.map((a) => ({
-              name: `${a.id} (${cleanCompanyName(a.name)})`,
-              value: a.id,
-            }))
-          );
-        },
-      },
+      command: assetAutocomplete,
     },
     {
       name: "period",
@@ -104,7 +83,7 @@ export default commandModule({
       })
       .from(prices)
       .where(
-        and(eq(prices.assetId, asset.id), gte(prices.timestamp, startDate))
+        and(eq(prices.assetId, asset.id), gte(prices.timestamp, startDate)),
       )
       .orderBy(prices.timestamp);
 
@@ -184,7 +163,7 @@ export default commandModule({
               media: { url: `attachment://${asset.id}-chart-${period}.png` },
             }).toJSON(),
           ],
-        }).toJSON()
+        }).toJSON(),
       );
     }
 
@@ -193,7 +172,7 @@ export default commandModule({
         content: displayPrice
           ? `-# **Price:** ${formatMoney(displayPrice)}`
           : "-# Price not available",
-      }).toJSON()
+      }).toJSON(),
     );
 
     const attachments = chartAttachment ? [chartAttachment] : [];
@@ -203,9 +182,7 @@ export default commandModule({
         container(
           priceChangeMode,
           components,
-          `### ${priceChangeEmoji} ${cleanCompanyName(asset.name)} - \`${
-            asset.id
-          }\``
+          `### ${priceChangeEmoji} ${cleanCompanyName(asset.name)} - \`${asset.id}\``,
         ),
       ],
       files: attachments,
