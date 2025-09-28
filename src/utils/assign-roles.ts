@@ -16,6 +16,8 @@ export const assignRoles = async (
   guildId: string,
   client: Client,
 ) => {
+  if (userId === client.user?.id) return;
+
   try {
     const userValue = await getTotalWorth(userId, guildId);
     const roleConfigs = await getAllRoleConfigs(guildId);
