@@ -211,7 +211,7 @@ export default commandModule({
       components: [
         container(
           "success",
-          `${actionText} ${formatShares(amount)} of **${asset.id}** (${company}) to ${user}.\n-# Current holdings: ${formatShares(transaction.sharesAfter)}`,
+          `${actionText} ${formatShares(amount)} of **${asset.id}** (${company}) to ${user}.\n\n-# Current holdings: ${formatShares(transaction.sharesAfter)}`,
         ),
       ],
       flags: MessageFlags.IsComponentsV2,
