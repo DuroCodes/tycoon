@@ -156,7 +156,5 @@ export const getUserWorthOverTime = async (userId: string, guildId: string) => {
     });
   }
 
-  console.log(worthOverTime);
-
   return worthOverTime;
 };
