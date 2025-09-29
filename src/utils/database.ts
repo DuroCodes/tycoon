@@ -1,6 +1,6 @@
 import { db } from "~/db/client";
 import { assets, users, prices, transactions, roleConfig } from "~/db/schema";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, lte } from "drizzle-orm";
 import { Err, Ok } from "./result";
 import { getStockInfo } from "./yfinance";
 
@@ -56,6 +56,17 @@ export const getLatestPrice = async (assetId: string) => {
   return priceQuery.length > 0 ? priceQuery[0] : null;
 };
 
+export const getPriceAtTime = async (assetId: string, atTimestamp: Date) => {
+  const priceQuery = await db
+    .select()
+    .from(prices)
+    .where(and(eq(prices.assetId, assetId), lte(prices.timestamp, atTimestamp)))
+    .orderBy(desc(prices.timestamp))
+    .limit(1);
+
+  return priceQuery.length > 0 ? priceQuery[0] : null;
+};
+
 export const getRoleConfig = async (guildId: string, roleId: string) => {
   const config = await db
     .select()
@@ -98,11 +109,14 @@ export const getUserWorthOverTime = async (userId: string, guildId: string) => {
   const worthOverTime = [];
   let portfolio = new Map<string, number>();
 
-  const calculatePortfolioValue = async (portfolio: Map<string, number>) => {
+  const calculatePortfolioValue = async (
+    portfolio: Map<string, number>,
+    atTimestamp: Date,
+  ) => {
     const pricePromises = Array.from(portfolio.entries())
       .filter(([, shares]) => shares > 0)
       .map(async ([assetId, shares]) => {
-        const price = await getLatestPrice(assetId);
+        const price = await getPriceAtTime(assetId, atTimestamp);
         return price ? shares * price.price : 0;
       });
 
@@ -119,7 +133,10 @@ export const getUserWorthOverTime = async (userId: string, guildId: string) => {
 
     portfolio.set(transaction.assetId, newShares);
 
-    const assetValue = await calculatePortfolioValue(portfolio);
+    const assetValue = await calculatePortfolioValue(
+      portfolio,
+      transaction.timestamp,
+    );
     worthOverTime.push({
       value: transaction.balanceAfter + assetValue,
       timestamp: transaction.timestamp,
@@ -128,13 +145,18 @@ export const getUserWorthOverTime = async (userId: string, guildId: string) => {
 
   if (userTransactions.length > 0) {
     const currentUser = await getUser(userId, guildId);
-    const currentAssetValue = await calculatePortfolioValue(portfolio);
+    const currentAssetValue = await calculatePortfolioValue(
+      portfolio,
+      new Date(),
+    );
 
     worthOverTime.push({
       value: currentUser.balance + currentAssetValue,
       timestamp: new Date(),
     });
   }
+
+  console.log(worthOverTime);
 
   return worthOverTime;
 };
