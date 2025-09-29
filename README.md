@@ -1,4 +1,4 @@
-# tycoon
+# <img src="logo.png" alt="tycoon" width="32" height="32" style="vertical-align: middle;"> tycoon
 
 a discord bot for stock trading and portfolio management. you can buy and sell stocks, track your portfolio performance, and compete on your server's leaderboard to get roles based on your net worth.
 
