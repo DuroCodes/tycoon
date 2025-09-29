@@ -81,8 +81,6 @@ export default commandModule({
     },
   ],
   execute: async (ctx) => {
-    // todo: start working on sell functionality
-    // assign new roles
     const { ownedAssets } = await getPortfolioData(ctx.user.id, ctx.guildId!);
     const asset = ownedAssets.find(
       (asset) => asset.assetId === ctx.options.getString("asset", true),
@@ -109,7 +107,7 @@ export default commandModule({
     if (asset.shares < shareAmount)
       return ctx.reply({
         components: [
-          container("error", "You do not enough shares"),
+          container("error", "You do not have enough shares"),
         ],
         flags: MessageFlags.IsComponentsV2,
       });
