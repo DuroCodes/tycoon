@@ -13,6 +13,7 @@ import { cleanCompanyName, formatShares } from "~/utils/formatting";
 import { getUser, getLatestPrice } from "~/utils/database";
 import { assetAutocomplete } from "~/utils/autocomplete";
 import { publishConfig } from "@sern/publisher";
+import { assignRoles } from "~/utils/assign-roles";
 
 export default commandModule({
   type: CommandType.Slash,
@@ -152,8 +153,8 @@ export default commandModule({
         and(
           eq(transactions.userId, user.id),
           eq(transactions.guildId, ctx.guildId!),
-          eq(transactions.assetId, asset.id),
-        ),
+          eq(transactions.assetId, asset.id)
+        )
       )
       .orderBy(desc(transactions.timestamp))
       .limit(1);
@@ -207,11 +208,13 @@ export default commandModule({
 
     const company = cleanCompanyName(asset.name);
 
+    await assignRoles(user.id, ctx.guildId!, ctx.client);
+
     return ctx.reply({
       components: [
         container(
           "success",
-          `${actionText} ${formatShares(amount)} of **${asset.id}** (${company}) to ${user}.\n\n-# Current holdings: ${formatShares(transaction.sharesAfter)}`,
+          `${actionText} ${formatShares(amount)} of **${asset.id}** (${company}) to ${user}.\n\n-# Current holdings: ${formatShares(transaction.sharesAfter)}`
         ),
       ],
       flags: MessageFlags.IsComponentsV2,

@@ -12,6 +12,7 @@ import { container } from "~/utils/components";
 import { formatMoney } from "~/utils/formatting";
 import { getUser } from "~/utils/database";
 import { publishConfig } from "@sern/publisher";
+import { assignRoles } from "~/utils/assign-roles";
 
 export default commandModule({
   type: CommandType.Slash,
@@ -108,11 +109,13 @@ export default commandModule({
       .set({ balance: newBalance })
       .where(and(eq(users.id, user.id), eq(users.guildId, ctx.guildId!)));
 
+    await assignRoles(user.id, ctx.guildId!, ctx.client);
+
     ctx.reply({
       components: [
         container(
           "success",
-          `Updated ${user}'s balance to ${formatMoney(newBalance)}.`,
+          `Updated ${user}'s balance to ${formatMoney(newBalance)}.`
         ),
       ],
       flags: MessageFlags.IsComponentsV2,
