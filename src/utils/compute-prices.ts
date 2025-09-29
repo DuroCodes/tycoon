@@ -38,7 +38,7 @@ export const computeAssetPrices = async (
     const priceEntries = priceData.value.prices.map((price, index) => ({
       assetId: asset,
       price,
-      timestamp: priceData.value.timestamps[index],
+      timestamp: days === 1 ? new Date() : priceData.value.timestamps[index],
     }));
 
     await db
