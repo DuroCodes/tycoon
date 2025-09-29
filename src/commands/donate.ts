@@ -32,12 +32,13 @@ export default commandModule({
     },
   ],
   execute: async (ctx) => {
+    await ctx.interaction.deferReply();
     const user = ctx.options.getMember("user") || ctx.member;
     if (!user || !(user instanceof GuildMember)) return;
 
     const amount = ctx.options.getNumber("amount", true);
     if (amount == 0) {
-      return ctx.reply({
+      return ctx.interaction.editReply({
         components: [container("error", "You cannot donate no money.")],
         flags: MessageFlags.IsComponentsV2,
       });
@@ -47,7 +48,7 @@ export default commandModule({
     const reciever = await getUser(user.id, ctx.guildId!);
 
     if (amount > sender.balance) {
-      return ctx.reply({
+      return ctx.interaction.editReply({
         components: [
           container("error", "You cannot donate more money than you have."),
         ],
@@ -65,7 +66,7 @@ export default commandModule({
       .set({ balance: reciever.balance + amount })
       .where(and(eq(users.id, reciever.id), eq(users.guildId, ctx.guildId!)));
 
-    ctx.reply({
+    ctx.interaction.editReply({
       components: [
         container(
           "success",

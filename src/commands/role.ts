@@ -62,6 +62,7 @@ export default commandModule({
     },
   ],
   execute: async (ctx) => {
+    await ctx.interaction.deferReply();
     const subcommand = ctx.options.getSubcommand();
 
     switch (subcommand) {
@@ -73,7 +74,7 @@ export default commandModule({
           role.position >=
           (ctx.interaction.guild?.members.me?.roles.highest.position ?? 0)
         ) {
-          return ctx.reply({
+          return ctx.interaction.editReply({
             components: [
               container("error", `Please set my role higher than ${role}.`),
             ],
@@ -82,7 +83,7 @@ export default commandModule({
         }
 
         if (threshold <= 0)
-          return ctx.reply({
+          return ctx.interaction.editReply({
             components: [
               container("error", "Threshold must be greater than 0."),
             ],
@@ -102,7 +103,7 @@ export default commandModule({
           .limit(1);
 
         if (conflictingConfig.length)
-          return ctx.reply({
+          return ctx.interaction.editReply({
             components: [
               container(
                 "error",
@@ -127,7 +128,7 @@ export default commandModule({
               ),
             );
 
-          return ctx.reply({
+          return ctx.interaction.editReply({
             components: [
               container(
                 "success",
@@ -144,7 +145,7 @@ export default commandModule({
           threshold,
         });
 
-        return ctx.reply({
+        return ctx.interaction.editReply({
           components: [
             container(
               "success",
@@ -159,7 +160,7 @@ export default commandModule({
         const roleConfigs = await getAllRoleConfigs(ctx.guildId!);
 
         if (!roleConfigs.length)
-          return ctx.reply({
+          return ctx.interaction.editReply({
             components: [
               container(
                 "error",
@@ -176,7 +177,7 @@ export default commandModule({
           )
           .join("\n");
 
-        return ctx.reply({
+        return ctx.interaction.editReply({
           components: [
             container(
               "info",
@@ -193,7 +194,7 @@ export default commandModule({
         const existingConfig = await getRoleConfig(ctx.guildId!, role.id);
 
         if (!existingConfig) {
-          return ctx.reply({
+          return ctx.interaction.editReply({
             components: [
               container("error", `No configuration found for ${role}.`),
             ],
@@ -210,7 +211,7 @@ export default commandModule({
             ),
           );
 
-        return ctx.reply({
+        return ctx.interaction.editReply({
           components: [
             container(
               "success",

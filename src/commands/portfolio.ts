@@ -20,6 +20,7 @@ export default commandModule({
     },
   ],
   execute: async (ctx) => {
+    await ctx.interaction.deferReply();
     const user = ctx.options.getMember("user") || ctx.member;
     if (!user || !(user instanceof GuildMember)) return;
 
@@ -29,7 +30,7 @@ export default commandModule({
       ctx.guildId!,
     );
 
-    await ctx.reply({
+    await ctx.interaction.editReply({
       components,
       files: attachments,
       flags: MessageFlags.IsComponentsV2,

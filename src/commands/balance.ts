@@ -86,12 +86,13 @@ export default commandModule({
     },
   ],
   execute: async (ctx) => {
+    await ctx.interaction.deferReply();
     const subcommand = ctx.options.getSubcommand();
     const user = ctx.options.getUser("user", true);
     const amount = ctx.options.getNumber("amount", true);
 
     if (["add", "remove"].includes(subcommand) && amount <= 0)
-      return ctx.reply({
+      return ctx.interaction.editReply({
         components: [container("error", "Amount must be greater than 0.")],
         flags: MessageFlags.IsComponentsV2,
       });
@@ -111,11 +112,11 @@ export default commandModule({
 
     await assignRoles(user.id, ctx.guildId!, ctx.client);
 
-    ctx.reply({
+    ctx.interaction.editReply({
       components: [
         container(
           "success",
-          `Updated ${user}'s balance to ${formatMoney(newBalance)}.`
+          `Updated ${user}'s balance to ${formatMoney(newBalance)}.`,
         ),
       ],
       flags: MessageFlags.IsComponentsV2,

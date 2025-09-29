@@ -81,13 +81,14 @@ export default commandModule({
     },
   ],
   execute: async (ctx) => {
+    await ctx.interaction.deferReply();
     const { ownedAssets } = await getPortfolioData(ctx.user.id, ctx.guildId!);
     const asset = ownedAssets.find(
       (asset) => asset.assetId === ctx.options.getString("asset", true),
     );
 
     if (!asset)
-      return ctx.reply({
+      return ctx.interaction.editReply({
         components: [container("error", "You do not own that asset")],
       });
 
@@ -105,7 +106,7 @@ export default commandModule({
     const shareAmount = type === "money" ? amount / latestPrice : amount;
 
     if (asset.shares < shareAmount)
-      return ctx.reply({
+      return ctx.interaction.editReply({
         components: [container("error", "You do not have enough shares")],
         flags: MessageFlags.IsComponentsV2,
       });
@@ -149,7 +150,7 @@ export default commandModule({
 
     await assignRoles(ctx.user.id, ctx.guildId!, ctx.client);
 
-    return ctx.reply({
+    return ctx.interaction.editReply({
       components: [
         container(
           "success",

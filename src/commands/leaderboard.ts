@@ -21,6 +21,7 @@ export default commandModule({
   description: "View the balance leaderboard",
   plugins: [databaseUser()],
   execute: async (ctx) => {
+    await ctx.interaction.deferReply();
     const allUsers = await db
       .select({ user: users.id, balance: users.balance })
       .from(users)
@@ -101,7 +102,7 @@ export default commandModule({
       return [section, separator].filter(Boolean) as APIComponentInContainer[];
     });
 
-    await ctx.reply({
+    await ctx.interaction.editReply({
       components: [
         container(
           "trophy",

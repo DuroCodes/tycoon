@@ -112,13 +112,14 @@ export default commandModule({
     },
   ],
   execute: async (ctx) => {
+    await ctx.interaction.deferReply();
     const subcommand = ctx.options.getSubcommand();
     const user = ctx.options.getUser("user", true);
     const assetSymbol = ctx.options.getString("asset", true);
     const amount = ctx.options.getNumber("amount", true);
 
     if (["add", "remove"].includes(subcommand) && amount <= 0)
-      return ctx.reply({
+      return ctx.interaction.editReply({
         components: [container("error", "Amount must be greater than 0.")],
         flags: MessageFlags.IsComponentsV2,
       });
@@ -130,7 +131,7 @@ export default commandModule({
       .limit(1);
 
     if (!assetQuery.length)
-      return ctx.reply({
+      return ctx.interaction.editReply({
         components: [container("error", "Asset not found in database")],
         flags: MessageFlags.IsComponentsV2,
       });
@@ -139,7 +140,7 @@ export default commandModule({
     const latestPrice = await getLatestPrice(asset.id);
 
     if (!latestPrice)
-      return ctx.reply({
+      return ctx.interaction.editReply({
         components: [container("error", "Price not found for this asset")],
         flags: MessageFlags.IsComponentsV2,
       });
@@ -153,8 +154,8 @@ export default commandModule({
         and(
           eq(transactions.userId, user.id),
           eq(transactions.guildId, ctx.guildId!),
-          eq(transactions.assetId, asset.id)
-        )
+          eq(transactions.assetId, asset.id),
+        ),
       )
       .orderBy(desc(transactions.timestamp))
       .limit(1);
@@ -210,11 +211,11 @@ export default commandModule({
 
     await assignRoles(user.id, ctx.guildId!, ctx.client);
 
-    return ctx.reply({
+    return ctx.interaction.editReply({
       components: [
         container(
           "success",
-          `${actionText} ${formatShares(amount)} of **${asset.id}** (${company}) to ${user}.\n\n-# Current holdings: ${formatShares(transaction.sharesAfter)}`
+          `${actionText} ${formatShares(amount)} of **${asset.id}** (${company}) to ${user}.\n\n-# Current holdings: ${formatShares(transaction.sharesAfter)}`,
         ),
       ],
       flags: MessageFlags.IsComponentsV2,

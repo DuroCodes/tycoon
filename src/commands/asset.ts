@@ -44,6 +44,7 @@ export default commandModule({
     },
   ],
   execute: async (ctx) => {
+    await ctx.interaction.deferReply();
     const assetId = ctx.options.getString("asset", true);
     const period = ctx.options.getString("period") || "30d";
 
@@ -54,7 +55,7 @@ export default commandModule({
       .limit(1);
 
     if (!dbAsset.length)
-      return ctx.reply({
+      return ctx.interaction.editReply({
         components: [container("error", "Asset not found in database")],
         flags: MessageFlags.IsComponentsV2,
       });
@@ -104,7 +105,7 @@ export default commandModule({
     const shortDescription = getSentences(asset.description);
 
     if (priceHistory.length < 2) {
-      return ctx.reply({
+      return ctx.interaction.editReply({
         components: [
           container("error", "No price history available for this period"),
         ],
@@ -177,7 +178,7 @@ export default commandModule({
 
     const attachments = chartAttachment ? [chartAttachment] : [];
 
-    await ctx.reply({
+    await ctx.interaction.editReply({
       components: [
         container(
           priceChangeMode,

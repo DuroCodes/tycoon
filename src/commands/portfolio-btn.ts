@@ -6,6 +6,7 @@ export default commandModule({
   type: CommandType.Button,
   name: "portfolio",
   execute: async (ctx, sdt) => {
+    await ctx.deferReply({ flags: MessageFlags.Ephemeral });
     const [userId, userDisplayName] = sdt.params!.split("|");
 
     const { components, attachments } = await buildPortfolioComponents(
@@ -14,7 +15,7 @@ export default commandModule({
       ctx.guildId!,
     );
 
-    await ctx.reply({
+    await ctx.editReply({
       components,
       files: attachments,
       flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,

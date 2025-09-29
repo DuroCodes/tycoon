@@ -52,12 +52,13 @@ export default commandModule({
     },
   ],
   execute: async (ctx) => {
+    await ctx.interaction.deferReply();
     const user = await getUser(ctx.user.id, ctx.guildId!);
     const type = ctx.options.getString("type", true);
     const amount = ctx.options.getNumber("amount", true);
 
     if (amount <= 0)
-      return ctx.reply({
+      return ctx.interaction.editReply({
         components: [
           container(
             "error",
@@ -74,7 +75,7 @@ export default commandModule({
       .limit(1);
 
     if (!assetQuery.length)
-      return ctx.reply({
+      return ctx.interaction.editReply({
         components: [container("error", "Asset not found in database")],
         flags: MessageFlags.IsComponentsV2,
       });
@@ -83,7 +84,7 @@ export default commandModule({
     const latestPrice = await getLatestPrice(asset.id);
 
     if (!latestPrice)
-      return ctx.reply({
+      return ctx.interaction.editReply({
         components: [container("error", "Price not found in database")],
         flags: MessageFlags.IsComponentsV2,
       });
@@ -94,7 +95,7 @@ export default commandModule({
 
     if (moneyAmount > user.balance) {
       const missing = formatMoney(moneyAmount - user.balance);
-      return ctx.reply({
+      return ctx.interaction.editReply({
         components: [
           container(
             "error",
@@ -146,7 +147,7 @@ export default commandModule({
 
     await assignRoles(user.id, ctx.guildId!, ctx.client);
 
-    return ctx.reply({
+    return ctx.interaction.editReply({
       components: [
         container(
           "success",
