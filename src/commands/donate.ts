@@ -11,7 +11,6 @@ import { databaseUser } from "~/plugins/database-user";
 import { container } from "~/utils/components";
 import { getUser } from "~/utils/database";
 import { formatMoney } from "~/utils/formatting";
-import { buildPortfolioComponents } from "~/utils/portfolio";
 
 export default commandModule({
   type: CommandType.Slash,

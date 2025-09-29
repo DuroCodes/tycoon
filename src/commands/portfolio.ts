@@ -5,7 +5,6 @@ import {
   MessageFlags,
 } from "discord.js";
 import { databaseUser } from "~/plugins/database-user";
-import { container } from "~/utils/components";
 import { buildPortfolioComponents } from "~/utils/portfolio";
 
 export default commandModule({
@@ -27,7 +26,7 @@ export default commandModule({
     const { components, attachments } = await buildPortfolioComponents(
       user.id,
       user.displayName,
-      ctx.guildId!,
+      ctx.guildId!
     );
 
     await ctx.reply({
