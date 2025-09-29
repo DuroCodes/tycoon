@@ -106,9 +106,7 @@ export default commandModule({
 
     if (asset.shares < shareAmount)
       return ctx.reply({
-        components: [
-          container("error", "You do not have enough shares"),
-        ],
+        components: [container("error", "You do not have enough shares")],
         flags: MessageFlags.IsComponentsV2,
       });
 
@@ -150,7 +148,7 @@ export default commandModule({
     });
 
     await assignRoles(ctx.user.id, ctx.guildId!, ctx.client);
-    
+
     return ctx.reply({
       components: [
         container(

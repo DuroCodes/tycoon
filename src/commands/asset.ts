@@ -83,7 +83,7 @@ export default commandModule({
       })
       .from(prices)
       .where(
-        and(eq(prices.assetId, asset.id), gte(prices.timestamp, startDate))
+        and(eq(prices.assetId, asset.id), gte(prices.timestamp, startDate)),
       )
       .orderBy(prices.timestamp);
 
@@ -163,7 +163,7 @@ export default commandModule({
               media: { url: `attachment://${asset.id}-chart-${period}.png` },
             }).toJSON(),
           ],
-        }).toJSON()
+        }).toJSON(),
       );
     }
 
@@ -172,7 +172,7 @@ export default commandModule({
         content: displayPrice
           ? `-# **Price:** ${formatMoney(displayPrice)}`
           : "-# Price not available",
-      }).toJSON()
+      }).toJSON(),
     );
 
     const attachments = chartAttachment ? [chartAttachment] : [];
@@ -182,7 +182,7 @@ export default commandModule({
         container(
           priceChangeMode,
           components,
-          `### ${priceChangeEmoji} ${cleanCompanyName(asset.name)} - \`${asset.id}\``
+          `### ${priceChangeEmoji} ${cleanCompanyName(asset.name)} - \`${asset.id}\``,
         ),
       ],
       files: attachments,

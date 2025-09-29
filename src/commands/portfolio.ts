@@ -26,7 +26,7 @@ export default commandModule({
     const { components, attachments } = await buildPortfolioComponents(
       user.id,
       user.displayName,
-      ctx.guildId!
+      ctx.guildId!,
     );
 
     await ctx.reply({

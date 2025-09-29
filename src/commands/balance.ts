@@ -112,7 +112,7 @@ export default commandModule({
       components: [
         container(
           "success",
-          `Updated ${user}'s balance to ${formatMoney(newBalance)}.`
+          `Updated ${user}'s balance to ${formatMoney(newBalance)}.`,
         ),
       ],
       flags: MessageFlags.IsComponentsV2,

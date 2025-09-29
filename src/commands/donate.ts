@@ -69,7 +69,7 @@ export default commandModule({
       components: [
         container(
           "success",
-          `You have donated ${formatMoney(amount)} to ${user.displayName}.`
+          `You have donated ${formatMoney(amount)} to ${user.displayName}.`,
         ),
       ],
       flags: MessageFlags.IsComponentsV2,
