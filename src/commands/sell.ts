@@ -12,6 +12,7 @@ import { assets, transactions, users } from "~/db/schema";
 import { eq, inArray } from "drizzle-orm";
 import { container, EMOJI_MAP } from "~/utils/components";
 import { getLatestPrice } from "~/utils/database";
+import { assignRoles } from "~/utils/assign-roles";
 
 export default commandModule({
   type: CommandType.Slash,
@@ -105,18 +106,10 @@ export default commandModule({
     const latestPrice = (await getLatestPrice(asset.assetId))!.price;
     const shareAmount = type === "money" ? amount / latestPrice : amount;
 
-    if (amount <= 0)
-      return ctx.reply({
-        components: [
-          container("error", "Invalid sell amount: must be greater than 0"),
-        ],
-        flags: MessageFlags.IsComponentsV2,
-      });
-
     if (asset.shares < shareAmount)
       return ctx.reply({
         components: [
-          container("error", "Invalid sell amount: not enough shares"),
+          container("error", "You do not enough shares"),
         ],
         flags: MessageFlags.IsComponentsV2,
       });
@@ -158,6 +151,8 @@ export default commandModule({
       sharesAfter: asset.shares - shareAmount,
     });
 
+    await assignRoles(ctx.user.id, ctx.guildId!, ctx.client);
+    
     return ctx.reply({
       components: [
         container(
