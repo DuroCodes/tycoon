@@ -39,7 +39,7 @@ export default commandModule({
     const amount = ctx.options.getNumber("amount", true);
     if (amount == 0) {
       return ctx.reply({
-        components: [container("error", "You cannot donate no money you.")],
+        components: [container("error", "You cannot donate no money.")],
         flags: MessageFlags.IsComponentsV2,
       });
     }
