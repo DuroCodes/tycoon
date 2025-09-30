@@ -32,7 +32,7 @@ export default commandModule({
         .fetch(userData.user)
         .catch(() => null);
 
-      if (!fetchedUser || fetchedUser.id === ctx.client.user?.id) return null;
+      if (!fetchedUser || fetchedUser.user.bot) return null;
 
       const totalWorth = await getTotalWorth(userData.user, ctx.guildId!);
 
@@ -52,18 +52,21 @@ export default commandModule({
       (a, b) => b!.totalWorth - a!.totalWorth,
     );
 
-    const top = sortedUsers.slice(0, 5);
-    const bottom = sortedUsers.slice(-5);
+    const top = sortedUsers.slice(0, 9);
 
-    const combinedUsers = [...top];
-    if (sortedUsers.length > 10) combinedUsers.push(...bottom);
-
-    const leaderboard = combinedUsers.map((user) => ({
+    const leaderboard = top.map((user) => ({
       user: user!.user.displayName,
       id: user!.id,
       balance: user!.balance,
       totalWorth: user!.totalWorth,
     }));
+
+    const currentUserIndex = sortedUsers.findIndex(
+      (user) => user!.id === ctx.user.id,
+    );
+    const currentUserRank = currentUserIndex + 1;
+    const currentUserWorth =
+      currentUserIndex >= 0 ? sortedUsers[currentUserIndex]!.totalWorth : 0;
 
     const rankEmojis = {
       0: "🥇",
@@ -95,18 +98,34 @@ export default commandModule({
     const createSeparator = (index: number, totalLength: number) =>
       index !== totalLength - 1 ? new SeparatorBuilder().toJSON() : null;
 
-    const leaderboardSections = leaderboard.flatMap((user, index) => {
-      const section = createLeaderboardSection(user, index);
-      const separator = createSeparator(index, leaderboard.length);
-
-      return [section, separator].filter(Boolean) as APIComponentInContainer[];
-    });
+    const topSections = top
+      .map((user, index) => {
+        const section = createLeaderboardSection(
+          {
+            user: user!.user.displayName,
+            id: user!.id,
+            balance: user!.balance,
+            totalWorth: user!.totalWorth,
+          },
+          index,
+        );
+        const separator = createSeparator(index, top.length);
+        return [section, separator].filter(
+          Boolean,
+        ) as APIComponentInContainer[];
+      })
+      .flat();
 
     await ctx.interaction.editReply({
       components: [
         container(
           "trophy",
-          leaderboardSections,
+          [
+            ...topSections,
+            new TextDisplayBuilder({
+              content: `-# **Your Rank:** #${currentUserRank} (${formatMoney(currentUserWorth)})`,
+            }).toJSON(),
+          ],
           `### ${EMOJI_MAP.trophy} Leaderboard`,
         ),
       ],
