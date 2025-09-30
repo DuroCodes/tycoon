@@ -90,6 +90,7 @@ export default commandModule({
     if (!asset)
       return ctx.interaction.editReply({
         components: [container("error", "You do not own that asset")],
+        flags: MessageFlags.IsComponentsV2,
       });
 
     const assetName = (
