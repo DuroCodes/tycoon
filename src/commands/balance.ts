@@ -46,7 +46,7 @@ export default commandModule({
     },
     {
       name: "add",
-      description: "Add balance to a user)",
+      description: "Add balance to a user",
       type: ApplicationCommandOptionType.Subcommand,
       options: [
         {

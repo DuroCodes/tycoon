@@ -55,7 +55,7 @@ export default commandModule({
     },
     {
       name: "add",
-      description: "Add shares to a user (add to their current holdings)",
+      description: "Add shares to a user",
       type: ApplicationCommandOptionType.Subcommand,
       options: [
         {
@@ -84,7 +84,7 @@ export default commandModule({
     {
       name: "remove",
       description:
-        "Remove shares from a user (subtract from their current holdings)",
+        "Remove shares from a user",
       type: ApplicationCommandOptionType.Subcommand,
       options: [
         {
