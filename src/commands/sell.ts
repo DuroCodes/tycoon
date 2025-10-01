@@ -11,7 +11,7 @@ import { db } from "~/db/client";
 import { assets, transactions, users } from "~/db/schema";
 import { eq, inArray } from "drizzle-orm";
 import { container, EMOJI_MAP } from "~/utils/components";
-import { getLatestPrice } from "~/utils/database";
+import { getLatestPrice, getUser } from "~/utils/database";
 import { assignRoles } from "~/utils/assign-roles";
 
 export default commandModule({
@@ -112,13 +112,7 @@ export default commandModule({
         flags: MessageFlags.IsComponentsV2,
       });
 
-    const balanceBefore = (
-      await db
-        .select({ balance: users.balance })
-        .from(users)
-        .where(eq(users.id, ctx.user.id))
-        .limit(1)
-    )[0].balance;
+    const { balance: balanceBefore } = await getUser(ctx.user.id, ctx.guildId!);
 
     const balanceAfter = balanceBefore + shareAmount * latestPrice;
 
