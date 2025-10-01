@@ -8,10 +8,11 @@ import {
 } from "~/utils/formatting";
 import { getPortfolioData } from "~/utils/portfolio";
 import { db } from "~/db/client";
-import { assets, users } from "~/db/schema";
-import { and, eq, inArray } from "drizzle-orm";
+import { users } from "~/db/schema";
+import { and, eq } from "drizzle-orm";
 import { container, EMOJI_MAP } from "~/utils/components";
 import { getLatestPrice, getUser, insertTransaction } from "~/utils/database";
+import { assetAutocomplete } from "~/utils/autocomplete";
 
 export default commandModule({
   type: CommandType.Slash,
@@ -24,36 +25,7 @@ export default commandModule({
       type: ApplicationCommandOptionType.String,
       required: false,
       autocomplete: true,
-      command: {
-        execute: async (ctx) => {
-          const focus = ctx.options.getFocused();
-          const ownedAssets = (
-            await getPortfolioData(ctx.user.id, ctx.guildId!)
-          ).ownedAssets;
-
-          const ownedAssetIds = ownedAssets.map((asset) => asset.assetId);
-
-          const dbAssets = await db
-            .select()
-            .from(assets)
-            .where(inArray(assets.id, ownedAssetIds));
-
-          const filteredAssets = dbAssets
-            .filter(
-              (asset) =>
-                asset.id.toLowerCase().includes(focus.toLowerCase()) ||
-                asset.name.toLowerCase().includes(focus.toLowerCase()),
-            )
-            .slice(0, 25);
-
-          await ctx.respond(
-            filteredAssets.map((a) => ({
-              name: `${a.id} (${cleanCompanyName(a.name)})`,
-              value: a.id,
-            })),
-          );
-        },
-      },
+      command: assetAutocomplete,
     },
   ],
   execute: async (ctx) => {
