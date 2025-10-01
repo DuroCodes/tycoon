@@ -1,11 +1,11 @@
 import {
   doublePrecision,
-  text,
-  pgTable,
-  timestamp,
-  uuid,
   pgEnum,
+  pgTable,
+  text,
+  timestamp,
   unique,
+  uuid,
 } from "drizzle-orm/pg-core";
 
 export const users = pgTable(

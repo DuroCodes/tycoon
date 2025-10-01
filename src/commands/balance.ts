@@ -7,7 +7,7 @@ import {
 import { databaseUser } from "~/plugins/database-user";
 import { db } from "~/db/client";
 import { users } from "~/db/schema";
-import { eq, and } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { container } from "~/utils/components";
 import { formatMoney } from "~/utils/formatting";
 import { getUser } from "~/utils/database";

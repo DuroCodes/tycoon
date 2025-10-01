@@ -8,7 +8,7 @@ import {
 } from "~/utils/formatting";
 import { getPortfolioData } from "~/utils/portfolio";
 import { db } from "~/db/client";
-import { assets, transactions, users } from "~/db/schema";
+import { assets, users } from "~/db/schema";
 import { and, eq, inArray } from "drizzle-orm";
 import { container, EMOJI_MAP } from "~/utils/components";
 import { getLatestPrice, getUser, insertTransaction } from "~/utils/database";
@@ -110,9 +110,11 @@ export default commandModule({
     }, []);
 
     const balancesAfter = moneyAmounts.reduce<number[]>((acc, curr, i) => {
-      balancesBefore[i + 1] === undefined
-        ? acc.push(balancesBefore[i] + curr)
-        : acc.push(balancesBefore[i + 1]);
+      acc.push(
+        balancesBefore[i + 1] === undefined
+          ? balancesBefore[i] + curr
+          : balancesBefore[i + 1]
+      );
       return acc;
     }, []);
 

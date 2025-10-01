@@ -7,10 +7,10 @@ import {
 import { databaseUser } from "~/plugins/database-user";
 import { db } from "~/db/client";
 import { assets, transactions } from "~/db/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { container } from "~/utils/components";
 import { cleanCompanyName, formatShares } from "~/utils/formatting";
-import { getUser, getLatestPrice, insertTransaction } from "~/utils/database";
+import { getLatestPrice, getUser, insertTransaction } from "~/utils/database";
 import { assetAutocomplete } from "~/utils/autocomplete";
 import { publishConfig } from "@sern/publisher";
 import { assignRoles } from "~/utils/assign-roles";

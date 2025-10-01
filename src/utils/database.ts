@@ -1,13 +1,13 @@
 import { db } from "~/db/client";
 import {
   assets,
-  users,
   prices,
-  transactions,
   roleConfig,
+  transactions,
   transactionTypeEnum,
+  users,
 } from "~/db/schema";
-import { eq, desc, and, lte } from "drizzle-orm";
+import { and, desc, eq, lte } from "drizzle-orm";
 import { Err, Ok } from "./result";
 import { getStockInfo } from "./yfinance";
 import { assignRoles } from "./assign-roles";
@@ -116,7 +116,7 @@ export const getUserWorthOverTime = async (userId: string, guildId: string) => {
   }
 
   const worthOverTime = [];
-  let portfolio = new Map<string, number>();
+  const portfolio = new Map<string, number>();
 
   const calculatePortfolioValue = async (
     portfolio: Map<string, number>,

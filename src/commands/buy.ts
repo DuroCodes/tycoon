@@ -1,15 +1,15 @@
 import { commandModule, CommandType } from "@sern/handler";
 import { ApplicationCommandOptionType, MessageFlags } from "discord.js";
 import { databaseUser } from "~/plugins/database-user";
-import { getUser, getLatestPrice, insertTransaction } from "~/utils/database";
+import { getLatestPrice, getUser, insertTransaction } from "~/utils/database";
 import { db } from "~/db/client";
 import {
   cleanCompanyName,
   formatMoney,
   formatShares,
 } from "~/utils/formatting";
-import { assets, users, transactions } from "~/db/schema";
-import { eq, desc, and } from "drizzle-orm";
+import { assets, transactions, users } from "~/db/schema";
+import { and, desc, eq } from "drizzle-orm";
 import { container } from "~/utils/components";
 import { assetAutocomplete } from "~/utils/autocomplete";
 
