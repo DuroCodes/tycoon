@@ -16,7 +16,7 @@ import { assignRoles } from "~/utils/assign-roles";
 
 export default commandModule({
   type: CommandType.Slash,
-  description: "Admin command to add (or remove) balance from a user",
+  description: "Admin command to manage user balances",
   plugins: [
     databaseUser(),
     publishConfig({
@@ -116,7 +116,7 @@ export default commandModule({
       components: [
         container(
           "success",
-          `Updated ${user}'s balance to ${formatMoney(newBalance)}.`,
+          `Updated ${user}'s balance to ${formatMoney(newBalance)}.`
         ),
       ],
       flags: MessageFlags.IsComponentsV2,
