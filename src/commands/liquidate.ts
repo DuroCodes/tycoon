@@ -15,7 +15,7 @@ import { getLatestPrice, getUser, insertTransaction } from "~/utils/database";
 
 export default commandModule({
   type: CommandType.Slash,
-  description: "Sell assets",
+  description: "Sell all shares",
   plugins: [databaseUser()],
   options: [
     {
@@ -95,21 +95,20 @@ export default commandModule({
       ctx.guildId!,
     );
 
-    const balancesBefore = moneyAmounts.reduce<number[]>((acc, curr) => {
-      const last = acc.length > 0 ? acc[acc.length - 1] : initialBalance;
-      acc.push(last + curr);
-      return acc;
-    }, []);
+    const balancesAfter = moneyAmounts.reduce<number[]>(
+      (acc, curr, i) => {
+        const prev = i === 0 ? initialBalance : acc[i - 1];
+        acc.push(prev + curr);
+        return acc;
+      },
+      []
+    );
 
-    const balancesAfter = moneyAmounts.reduce<number[]>((acc, curr, i) => {
-      acc.push(
-        balancesBefore[i + 1] === undefined
-          ? balancesBefore[i] + curr
-          : balancesBefore[i + 1],
-      );
-      return acc;
-    }, []);
-
+    const balancesBefore = [
+      initialBalance,
+      ...balancesAfter.slice(0, Math.max(0, balancesAfter.length - 1)),
+    ];
+    
     const finalBalance = balancesAfter[balancesAfter.length - 1];
 
     const differences = assets.map((a, i) => a.difference * shareAmounts[i]);
