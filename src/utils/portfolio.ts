@@ -67,7 +67,11 @@ export const getTotalWorth = async (userId: string, guildId: string) => {
   return totalWorth;
 };
 
-export const getPortfolioData = async (userId: string, guildId: string) => {
+export const getPortfolioData = async (
+  userId: string,
+  guildId: string,
+  period: string = "7d",
+) => {
   const { balance } = await getUser(userId, guildId);
   const assetData = await getUserAssetData(userId, guildId);
 
@@ -132,10 +136,11 @@ export const getPortfolioData = async (userId: string, guildId: string) => {
 
   let worthChartBuffer: Buffer | null = null;
   try {
-    const worthData = await getUserWorthOverTime(userId, guildId);
+    const worthData = await getUserWorthOverTime(userId, guildId, period);
     if (worthData.length > 1)
       worthChartBuffer = await generateValueChartPng(worthData, {
         yAxisFormatter: (value) => formatMoney(value),
+        period: period,
       });
   } catch (error) {
     console.error("Failed to generate worth chart:", error);
@@ -154,8 +159,9 @@ export const buildPortfolioComponents = async (
   userId: string,
   userDisplayName: string,
   guildId: string,
+  period: string = "7d",
 ) => {
-  const portfolioData = await getPortfolioData(userId, guildId);
+  const portfolioData = await getPortfolioData(userId, guildId, period);
   const attachments: AttachmentBuilder[] = [];
 
   if (portfolioData.worthChartBuffer) {

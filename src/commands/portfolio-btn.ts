@@ -13,6 +13,7 @@ export default commandModule({
       userId,
       userDisplayName,
       ctx.guildId!,
+      "7d",
     );
 
     await ctx.editReply({

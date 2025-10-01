@@ -42,7 +42,7 @@ export default commandModule({
             .filter(
               (asset) =>
                 asset.id.toLowerCase().includes(focus.toLowerCase()) ||
-                asset.name.toLowerCase().includes(focus.toLowerCase())
+                asset.name.toLowerCase().includes(focus.toLowerCase()),
             )
             .slice(0, 25);
 
@@ -50,7 +50,7 @@ export default commandModule({
             filteredAssets.map((a) => ({
               name: `${a.id} (${cleanCompanyName(a.name)})`,
               value: a.id,
-            }))
+            })),
           );
         },
       },
@@ -63,7 +63,7 @@ export default commandModule({
 
     if (ctx.options.getString("asset")) {
       const foundAsset = ownedAssets.find(
-        (asset) => asset.assetId === ctx.options.getString("asset")
+        (asset) => asset.assetId === ctx.options.getString("asset"),
       );
 
       if (!foundAsset)
@@ -82,16 +82,8 @@ export default commandModule({
         });
     }
 
-    // const assetName = (
-    //   await db
-    //     .select()
-    //     .from(assets)
-    //     .where(eq(assets.id, asset.assetId))
-    //     .limit(1)
-    // )[0].name;
-
     const latestPrices = await Promise.all(
-      assets.map((a) => getLatestPrice(a.assetId).then((res) => res!.price))
+      assets.map((a) => getLatestPrice(a.assetId).then((res) => res!.price)),
     );
 
     const shareAmounts = assets.map((a) => a.shares);
@@ -100,7 +92,7 @@ export default commandModule({
 
     const { balance: initialBalance } = await getUser(
       ctx.user.id,
-      ctx.guildId!
+      ctx.guildId!,
     );
 
     const balancesBefore = moneyAmounts.reduce<number[]>((acc, curr) => {
@@ -113,7 +105,7 @@ export default commandModule({
       acc.push(
         balancesBefore[i + 1] === undefined
           ? balancesBefore[i] + curr
-          : balancesBefore[i + 1]
+          : balancesBefore[i + 1],
       );
       return acc;
     }, []);
@@ -151,14 +143,14 @@ export default commandModule({
         balancesBefore[i],
         balancesAfter[i],
         asset.shares,
-        asset.shares - shareAmounts[i]
+        asset.shares - shareAmounts[i],
       );
     });
 
     const replyString = assets
       .map(
         (asset, i) =>
-          `- ${changeEmojis[i]} ${asset.assetId} • ${formatMoney(shareAmounts[i] * latestPrices[i])} (formatMoney(differences[i])}) • ${formatShares(shareAmounts[i])}`
+          `- ${changeEmojis[i]} ${asset.assetId} • ${formatMoney(shareAmounts[i] * latestPrices[i])} (${formatMoney(differences[i])}) • ${formatShares(shareAmounts[i])}`,
       )
       .join("\n");
 
@@ -167,7 +159,7 @@ export default commandModule({
         container(
           overallChangeString,
           replyString,
-          `### ${overallChangeEmoji} Sold Assets`
+          `### ${overallChangeEmoji} Sold Assets`,
         ),
       ],
       flags: MessageFlags.IsComponentsV2,
