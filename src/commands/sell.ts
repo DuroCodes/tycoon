@@ -9,7 +9,7 @@ import {
 import { getPortfolioData } from "~/utils/portfolio";
 import { db } from "~/db/client";
 import { assets, transactions, users } from "~/db/schema";
-import { eq, inArray } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { container, EMOJI_MAP } from "~/utils/components";
 import { getLatestPrice, getUser, insertTransaction } from "~/utils/database";
 import { assignRoles } from "~/utils/assign-roles";
@@ -128,7 +128,7 @@ export default commandModule({
     await db
       .update(users)
       .set({ balance: balanceAfter })
-      .where(eq(users.id, ctx.user.id));
+      .where(and(eq(users.id, ctx.user.id), eq(users.guildId, ctx.guildId!)));
 
     await insertTransaction(
       ctx.user.id,
