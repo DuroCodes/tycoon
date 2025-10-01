@@ -11,7 +11,7 @@ import { db } from "~/db/client";
 import { assets, transactions, users } from "~/db/schema";
 import { eq, inArray } from "drizzle-orm";
 import { container, EMOJI_MAP } from "~/utils/components";
-import { getLatestPrice, getUser } from "~/utils/database";
+import { getLatestPrice, getUser, insertTransaction } from "~/utils/database";
 import { assignRoles } from "~/utils/assign-roles";
 
 export default commandModule({
@@ -130,18 +130,18 @@ export default commandModule({
       .set({ balance: balanceAfter })
       .where(eq(users.id, ctx.user.id));
 
-    await db.insert(transactions).values({
-      userId: ctx.user.id,
-      guildId: ctx.guildId!,
-      assetId: asset.assetId,
-      type: "sell",
-      shares: shareAmount,
-      pricePerShare: latestPrice,
+    await insertTransaction(
+      ctx.user.id,
+      ctx.guildId!,
+      asset.assetId,
+      "sell",
+      shareAmount,
+      latestPrice,
       balanceBefore,
       balanceAfter,
-      sharesBefore: asset.shares,
-      sharesAfter: asset.shares - shareAmount,
-    });
+      asset.shares,
+      asset.shares - shareAmount
+    );
 
     await assignRoles(ctx.user.id, ctx.guildId!, ctx.client);
 

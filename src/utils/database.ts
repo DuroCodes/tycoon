@@ -1,8 +1,17 @@
 import { db } from "~/db/client";
-import { assets, users, prices, transactions, roleConfig } from "~/db/schema";
+import {
+  assets,
+  users,
+  prices,
+  transactions,
+  roleConfig,
+  transactionTypeEnum,
+} from "~/db/schema";
 import { eq, desc, and, lte } from "drizzle-orm";
 import { Err, Ok } from "./result";
 import { getStockInfo } from "./yfinance";
+import { assignRoles } from "./assign-roles";
+import { Service } from "@sern/handler"
 
 export const getUser = async (userId: string, guildId: string) => {
   const existingUser = await db
@@ -92,7 +101,7 @@ export const getUserWorthOverTime = async (userId: string, guildId: string) => {
     .select()
     .from(transactions)
     .where(
-      and(eq(transactions.userId, userId), eq(transactions.guildId, guildId)),
+      and(eq(transactions.userId, userId), eq(transactions.guildId, guildId))
     )
     .orderBy(transactions.timestamp);
 
@@ -111,7 +120,7 @@ export const getUserWorthOverTime = async (userId: string, guildId: string) => {
 
   const calculatePortfolioValue = async (
     portfolio: Map<string, number>,
-    atTimestamp: Date,
+    atTimestamp: Date
   ) => {
     const pricePromises = Array.from(portfolio.entries())
       .filter(([, shares]) => shares > 0)
@@ -135,7 +144,7 @@ export const getUserWorthOverTime = async (userId: string, guildId: string) => {
 
     const assetValue = await calculatePortfolioValue(
       portfolio,
-      transaction.timestamp,
+      transaction.timestamp
     );
     worthOverTime.push({
       value: transaction.balanceAfter + assetValue,
@@ -147,7 +156,7 @@ export const getUserWorthOverTime = async (userId: string, guildId: string) => {
     const currentUser = await getUser(userId, guildId);
     const currentAssetValue = await calculatePortfolioValue(
       portfolio,
-      new Date(),
+      new Date()
     );
 
     worthOverTime.push({
@@ -157,4 +166,32 @@ export const getUserWorthOverTime = async (userId: string, guildId: string) => {
   }
 
   return worthOverTime;
+};
+
+export const insertTransaction = async (
+  userId: string,
+  guildId: string,
+  assetId: string,
+  type: (typeof transactionTypeEnum.enumValues)[number],
+  shares: number,
+  pricePerShare: number,
+  balanceBefore: number,
+  balanceAfter: number,
+  sharesBefore: number,
+  sharesAfter: number
+) => {
+  await db.insert(transactions).values({
+    userId,
+    guildId,
+    assetId,
+    type,
+    shares,
+    pricePerShare,
+    balanceBefore,
+    balanceAfter,
+    sharesBefore,
+    sharesAfter,
+  });
+  
+  await assignRoles(userId, guildId, Service("@sern/client"))
 };

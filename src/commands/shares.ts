@@ -10,7 +10,7 @@ import { assets, transactions } from "~/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { container } from "~/utils/components";
 import { cleanCompanyName, formatShares } from "~/utils/formatting";
-import { getUser, getLatestPrice } from "~/utils/database";
+import { getUser, getLatestPrice, insertTransaction } from "~/utils/database";
 import { assetAutocomplete } from "~/utils/autocomplete";
 import { publishConfig } from "@sern/publisher";
 import { assignRoles } from "~/utils/assign-roles";
@@ -187,19 +187,20 @@ export default commandModule({
               transactionType: "sell" as const,
             };
 
-    await db.insert(transactions).values({
-      userId: user.id,
-      guildId: ctx.guildId!,
-      assetId: asset.id,
-      type: transaction.transactionType,
-      shares: transaction.sharesToProcess,
-      pricePerShare: latestPrice.price,
-      balanceBefore: targetUser.balance,
-      balanceAfter: targetUser.balance,
-      sharesBefore: transaction.sharesBefore,
-      sharesAfter: transaction.sharesAfter,
-    });
 
+    await insertTransaction(
+      user.id,
+      ctx.guildId!,
+      asset.id,
+      transaction.transactionType,
+      transaction.sharesToProcess,
+      latestPrice.price,
+      targetUser.balance,
+      targetUser.balance,
+      transaction.sharesBefore,
+      transaction.sharesAfter
+    );
+    
     const actionText =
       subcommand === "set"
         ? "Set to"

@@ -1,7 +1,7 @@
 import { commandModule, CommandType } from "@sern/handler";
 import { ApplicationCommandOptionType, MessageFlags } from "discord.js";
 import { databaseUser } from "~/plugins/database-user";
-import { getUser, getLatestPrice } from "~/utils/database";
+import { getUser, getLatestPrice, insertTransaction } from "~/utils/database";
 import { db } from "~/db/client";
 import {
   cleanCompanyName,
@@ -122,30 +122,28 @@ export default commandModule({
     const sharesBefore = latestTransaction.length
       ? latestTransaction[0].sharesAfter
       : 0;
-
-    await db.insert(transactions).values({
-      userId: user.id,
-      guildId: ctx.guildId!,
-      assetId: asset.id,
-      type: "buy",
-      shares: shareAmount,
-      pricePerShare: currentPrice,
-      balanceBefore: user.balance,
-      balanceAfter: user.balance - moneyAmount,
-      sharesBefore,
-      sharesAfter: sharesBefore + shareAmount,
-    });
-
+      
     await db
       .update(users)
       .set({ balance: user.balance - moneyAmount })
       .where(and(eq(users.id, user.id), eq(users.guildId, ctx.guildId!)));
+    
+    await insertTransaction(
+      user.id,
+      ctx.guildId!,
+      asset.id,
+      "buy",
+      shareAmount,
+      currentPrice,
+      user.balance,
+      user.balance - moneyAmount,
+      sharesBefore,
+      sharesBefore + shareAmount, 
+    );
 
     const money = formatMoney(moneyAmount);
     const company = cleanCompanyName(asset.name);
     const newBalance = formatMoney(user.balance - moneyAmount);
-
-    await assignRoles(user.id, ctx.guildId!, ctx.client);
 
     return ctx.interaction.editReply({
       components: [
