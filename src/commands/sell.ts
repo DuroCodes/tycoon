@@ -12,7 +12,6 @@ import { assets, transactions, users } from "~/db/schema";
 import { and, eq, inArray } from "drizzle-orm";
 import { container, EMOJI_MAP } from "~/utils/components";
 import { getLatestPrice, getUser, insertTransaction } from "~/utils/database";
-import { assignRoles } from "~/utils/assign-roles";
 
 export default commandModule({
   type: CommandType.Slash,
@@ -142,8 +141,6 @@ export default commandModule({
       asset.shares,
       asset.shares - shareAmount
     );
-
-    await assignRoles(ctx.user.id, ctx.guildId!, ctx.client);
 
     return ctx.interaction.editReply({
       components: [

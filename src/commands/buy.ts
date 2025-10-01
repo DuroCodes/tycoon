@@ -11,7 +11,6 @@ import {
 import { assets, users, transactions } from "~/db/schema";
 import { eq, desc, and } from "drizzle-orm";
 import { container } from "~/utils/components";
-import { assignRoles } from "~/utils/assign-roles";
 import { assetAutocomplete } from "~/utils/autocomplete";
 
 export default commandModule({
