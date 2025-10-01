@@ -46,7 +46,7 @@ export default commandModule({
   execute: async (ctx) => {
     await ctx.interaction.deferReply();
     const assetId = ctx.options.getString("asset", true);
-    const period = ctx.options.getString("period") || "30d";
+    const period = ctx.options.getString("period") || "7d";
 
     const dbAsset = await db
       .select()
