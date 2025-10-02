@@ -27,9 +27,10 @@ export default commandModule({
       command: {
         execute: async (ctx) => {
           const focus = ctx.options.getFocused();
-          const ownedAssets = (
-            await getPortfolioData(ctx.user.id, ctx.guildId!)
-          ).ownedAssets;
+          const { ownedAssets } = await getPortfolioData(
+            ctx.user.id,
+            ctx.guildId!,
+          );
 
           const ownedAssetIds = ownedAssets.map((asset) => asset.assetId);
 
@@ -95,20 +96,17 @@ export default commandModule({
       ctx.guildId!,
     );
 
-    const balancesAfter = moneyAmounts.reduce<number[]>(
-      (acc, curr, i) => {
-        const prev = i === 0 ? initialBalance : acc[i - 1];
-        acc.push(prev + curr);
-        return acc;
-      },
-      []
-    );
+    const balancesAfter = moneyAmounts.reduce<number[]>((acc, curr, i) => {
+      const prev = i === 0 ? initialBalance : acc[i - 1];
+      acc.push(prev + curr);
+      return acc;
+    }, []);
 
     const balancesBefore = [
       initialBalance,
       ...balancesAfter.slice(0, Math.max(0, balancesAfter.length - 1)),
     ];
-    
+
     const finalBalance = balancesAfter[balancesAfter.length - 1];
 
     const differences = assets.map((a, i) => a.difference * shareAmounts[i]);
