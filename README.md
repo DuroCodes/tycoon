@@ -19,6 +19,7 @@ made by [@durocodes](https://github.com/durocodes), [@ziegeist227](https://githu
 
 - `/buy <asset> <quantity> <money|shares>` - buy stocks
 - `/sell <asset> <quantity> <money|shares>` - sell stocks
+- `/liquidate [asset]` - liquidate a stock or your entire portfolio
 - `/portfolio [user]` - view a user's portfolio
 - `/asset <asset> [period]` - view a stock's information
 - `/leaderboard` - view the leaderboard
