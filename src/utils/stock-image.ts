@@ -38,7 +38,7 @@ export const generateValueChartPng = async (
 
   const periodConfig = {
     "1d": { timeDisplayFormat: "HH:mm", maxTicksLimit: 8 },
-    "7d": { timeDisplayFormat: "MM/dd HH:mm", maxTicksLimit: 7 },
+    "7d": { timeDisplayFormat: "MM/dd", maxTicksLimit: 7 },
     "30d": { timeDisplayFormat: "MM/dd", maxTicksLimit: 6 },
     "90d": { timeDisplayFormat: "MM/dd", maxTicksLimit: 6 },
     "1y": { timeDisplayFormat: "MMM dd", maxTicksLimit: 6 },
@@ -94,7 +94,7 @@ export const generateValueChartPng = async (
       scales: {
         x: {
           type: "time",
-          time: { displayFormats: { day: timeDisplayFormat } },
+          time: { displayFormats: { hour: timeDisplayFormat } },
           grid: { color: "rgba(255,255,255,0.08)", lineWidth: 1 },
           ticks: {
             color: "rgba(255,255,255,0.7)",
