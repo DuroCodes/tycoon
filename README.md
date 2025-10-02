@@ -18,8 +18,9 @@ made by [@durocodes](https://github.com/durocodes), [@ziegeist227](https://githu
 ### user commands
 
 - `/buy <asset> <quantity> <money|shares>` - buy stocks
+- `/buyall <asset>` - buy as much of an asset as possible
 - `/sell <asset> <quantity> <money|shares>` - sell stocks
-- `/liquidate [asset]` - liquidate a stock or your entire portfolio
+- `/sellall [asset]` - liquidate a stock or your entire portfolio
 - `/portfolio [user] [period]` - view a user's portfolio over a specific time period
 - `/asset <asset> [period]` - view a stock's information
 - `/leaderboard` - view the leaderboard
